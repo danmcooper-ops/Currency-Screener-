@@ -96,13 +96,19 @@ jobs:
         if: steps.pages.outcome == 'success'
         uses: actions/deploy-pages@v4
 
-      - name: Pages not enabled
+      # Two distinct causes land here and the fix differs, so name both:
+      # Pages never enabled at all, or enabled with Source set to "Deploy from
+      # a branch" (in which case Pages serves that branch and ignores this
+      # workflow's artifact entirely).
+      - name: Pages not deployable
         if: steps.pages.outcome != 'success'
         run: |
-          echo "::warning title=GitHub Pages not enabled::Built the report but \
-          could not deploy. Enable Pages once at Settings > Pages (set Source \
-          to 'GitHub Actions'), then re-run this workflow. Until then the \
-          latest report is on the pages-live branch under docs/."
+          echo "::warning title=Pages artifact not deployed::Built the report \
+          but could not deploy it. Either Pages is off, or its Source is set \
+          to 'Deploy from a branch' — this workflow can only publish when \
+          Source is 'GitHub Actions'. Fix: Settings > Pages > Source > GitHub \
+          Actions, then re-run. To serve from a branch instead, point it at \
+          pages-live / docs, which this job keeps current."
 
       # Archival copy. Single-commit orphan branch, force-pushed each run, so
       # the ~660 KB daily report never accumulates in git history. Runs even
