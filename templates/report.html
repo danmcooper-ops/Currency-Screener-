@@ -186,6 +186,48 @@ footer code{font-family:var(--mono);font-size:11px}
   h1{font-size:15px}
   .modal{padding:14px}
 }
+
+/* Touch devices. `hover: none` is the honest test — a small window on a
+   desktop still has a pointer, and an iPad with a trackpad does not want
+   thumb-sized controls. */
+@media(hover:none){
+  /* iOS Safari zooms the entire page when focusing an input whose font-size
+     is under 16px, and never zooms back out. This is the fix; the padding
+     keeps the control from growing taller than the buttons beside it. */
+  input[type=search],select{font-size:16px;padding:8px 10px}
+  /* Apple's minimum comfortable tap target is 44px. */
+  .btn{padding:11px 14px;font-size:14px}
+  .chip{padding:10px 14px;font-size:13px}
+  .close{font-size:30px;padding:10px}
+  /* Rows are the primary tap target on mobile. */
+  tbody td{padding:11px 9px}
+  /* Without hover there is nothing to reveal a tooltip, so mark the targets
+     that carry one. Kept faint — it is on ~77 elements. */
+  th[data-tip]{text-decoration:underline dotted var(--line);
+    text-underline-offset:3px}
+}
+
+/* Narrow screens: pin the currency code while the rest of the table scrolls
+   sideways. With 18 columns on a 390px phone you are always scrolled away
+   from the left edge, and without this you lose track of which row you are
+   reading. The z-index must sit under the sticky header row so the two do
+   not fight at the top-left corner. */
+@media(max-width:900px){
+  #t td:first-child, #t th:first-child,
+  #m td:first-child, #m th:first-child{
+    position:sticky;left:0;z-index:1;
+    background:var(--bg);
+    box-shadow:1px 0 0 var(--line)}
+  #t th:first-child, #m th:first-child{z-index:3;background:var(--panel)}
+  tbody tr:hover td:first-child{background:var(--line-soft)}
+}
+
+/* Short landscape phones: the modal must not overflow off-screen. */
+@media(max-height:520px){
+  .mask{padding:8px}
+  .modal{padding:12px}
+  .spark svg{height:80px}
+}
 </style>
 </head>
 <body>
@@ -298,23 +340,35 @@ function ratingCls(r){return 'r-'+String(r||'UNRATED').replace(/ /g,'');}
    thrown away and would need rebinding at each of those call sites. */
 var _TIP=document.getElementById('tip'), _TIPT=null;
 
-function _placeTip(el){
-  var r=el.getBoundingClientRect(), pad=10;
+/* Positions against a plain rect rather than a live element. Tapping a
+   sortable header re-renders the whole header row, so by the time the
+   tooltip is drawn the element that was tapped may be detached — and a
+   detached node reports a zero rect, which would pin the tooltip to the
+   top-left corner. Reading the geometry up front avoids that entirely. */
+function _placeTip(box){
+  var pad=10;
   _TIP.style.left='0px'; _TIP.style.top='0px';   // measure unclamped
   var t=_TIP.getBoundingClientRect();
-  var x=r.left+r.width/2-t.width/2;
-  var y=r.bottom+8;
-  if(y+t.height>innerHeight-pad) y=r.top-t.height-8;  // flip above
+  var x=box.left+box.width/2-t.width/2;
+  var y=box.bottom+8;
+  if(y+t.height>innerHeight-pad) y=box.top-t.height-8;  // flip above
   if(y<pad) y=pad;
   x=Math.max(pad,Math.min(x,innerWidth-t.width-pad));
   _TIP.style.left=x+'px'; _TIP.style.top=y+'px';
 }
-function showTip(el){
-  var txt=el.getAttribute('data-tip'); if(!txt)return;
-  var label=el.getAttribute('data-tip-title');
+function _boxOf(el){
+  var r=el.getBoundingClientRect();
+  return {left:r.left,top:r.top,bottom:r.bottom,width:r.width};
+}
+function showTipData(txt,label,box){
+  if(!txt)return;
   _TIP.innerHTML=(label?'<b>'+esc(label)+'</b>':'')+esc(txt);
   _TIP.classList.add('on'); _TIP.setAttribute('aria-hidden','false');
-  _placeTip(el);
+  _placeTip(box);
+}
+function showTip(el){
+  showTipData(el.getAttribute('data-tip'),
+              el.getAttribute('data-tip-title'), _boxOf(el));
 }
 function hideTip(){
   _TIP.classList.remove('on'); _TIP.setAttribute('aria-hidden','true');
@@ -325,18 +379,56 @@ function _tipTarget(e){
                             el=el.parentNode; }
   return null;
 }
-document.addEventListener('mouseover',function(e){
-  var el=_tipTarget(e); if(el){clearTimeout(_TIPT);_TIPT=setTimeout(function(){showTip(el);},120);}
-});
-document.addEventListener('mouseout',function(e){
-  if(_tipTarget(e)){clearTimeout(_TIPT);hideTip();}
-});
+/* Touch devices have no hover, and iOS synthesises a mouseover on first tap —
+   which would show a tooltip that then never receives a mouseout and sits
+   there permanently. So the two input models are bound separately.
+   `hover: none` is the honest test, not screen width: a narrow desktop
+   window still hovers, an iPad with a trackpad does. */
+var COARSE = matchMedia('(hover:none)').matches;
+
+if(!COARSE){
+  document.addEventListener('mouseover',function(e){
+    var el=_tipTarget(e);
+    if(el){clearTimeout(_TIPT);_TIPT=setTimeout(function(){showTip(el);},120);}
+  });
+  document.addEventListener('mouseout',function(e){
+    if(_tipTarget(e)){clearTimeout(_TIPT);hideTip();}
+  });
+}else{
+  /* Tap shows the tooltip and dismisses it again on the next tap anywhere,
+     with a timeout so it cannot be left stranded. Capture phase, because
+     many tooltip targets sit inside something clickable — a column header
+     that sorts, a rating pill inside a row that opens the detail panel. The
+     tooltip rides along with that action rather than trying to suppress it;
+     swallowing the tap would break sorting and drill-down on mobile. */
+  document.addEventListener('click',function(e){
+    var el=_tipTarget(e);
+    clearTimeout(_TIPT);
+    if(!el){hideTip();return;}
+    // Read text and geometry now, draw after this tap's own handlers have
+    // run. Sorting rebuilds the header row, which detaches the tapped
+    // element and fires focusout — drawing synchronously would show a
+    // tooltip that the resulting focus change immediately hides.
+    var txt=el.getAttribute('data-tip'),
+        ttl=el.getAttribute('data-tip-title'),
+        box=_boxOf(el);
+    setTimeout(function(){
+      showTipData(txt,ttl,box);
+      _TIPT=setTimeout(hideTip,5000);
+    },0);
+  },true);
+}
+
 document.addEventListener('focusin',function(e){
   var el=_tipTarget(e); if(el)showTip(el);
 });
-document.addEventListener('focusout',hideTip);
+/* Only on pointer devices: on touch the re-render that follows a tap
+   detaches the focused element and fires focusout, which would cancel the
+   tooltip that same tap just requested. */
+if(!COARSE) document.addEventListener('focusout',hideTip);
 document.addEventListener('keydown',function(e){if(e.key==='Escape')hideTip();});
 addEventListener('scroll',hideTip,true);
+addEventListener('orientationchange',hideTip);
 
 function tipAttr(text,title){
   if(!text)return '';
