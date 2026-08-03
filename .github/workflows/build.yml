@@ -20,7 +20,15 @@ on:
     - cron: '20 6 * * *'
   workflow_dispatch:
   push:
-    branches: [main]
+    # The github-pages environment only accepts deployments from the
+    # repository's default branch. This repo's default is still the branch it
+    # was first pushed to (claude/currency-screener-html-cn960n), not main, so
+    # a run triggered only by main is rejected before it reaches a runner —
+    # two seconds, no steps, no logs. Both branches are listed until the
+    # default is switched to main, after which the second entry can go.
+    branches:
+      - main
+      - claude/currency-screener-html-cn960n
     paths:
       - 'data/**'
       - 'models/**'
