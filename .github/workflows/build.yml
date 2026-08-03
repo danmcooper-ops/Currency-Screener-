@@ -1,0 +1,85 @@
+name: Build currency screener
+
+on:
+  schedule:
+    # 06:20 UTC daily. After the previous day's ECB reference rates are out
+    # (published ~16:00 CET) and off the top of the hour, where scheduled
+    # runners queue worst.
+    - cron: '20 6 * * *'
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'data/**'
+      - 'models/**'
+      - 'scripts/**'
+      - 'templates/**'
+      - '.github/workflows/build.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: build
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run tests
+        run: python -m pytest -q
+
+      # Upstream responses are cached on disk by data/cache.py. Restoring the
+      # cache means a World Bank outage on build day is served from the last
+      # good response instead of emptying the External pillar — the same
+      # stale-serve path the clients use locally.
+      - name: Restore API cache
+        uses: actions/cache@v4
+        with:
+          path: data/cache
+          key: api-cache-${{ github.run_id }}
+          restore-keys: api-cache-
+
+      - name: Build report
+        run: python scripts/analyze_currencies.py
+
+      - name: Stage docs
+        run: python scripts/publish_pages.py
+
+      - name: Publish to pages-live
+        env:
+          GIT_AUTHOR_NAME: github-actions[bot]
+          GIT_AUTHOR_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
+          GIT_COMMITTER_NAME: github-actions[bot]
+          GIT_COMMITTER_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
+        run: |
+          set -euo pipefail
+          # Single-commit orphan branch, amended and force-pushed each run, so
+          # the ~650 KB daily report never accumulates in git history.
+          tmp="$(mktemp -d)"
+          cp -r docs/. "$tmp/"
+          git checkout --orphan pages-live
+          git rm -rf --cached . >/dev/null 2>&1 || true
+          rm -rf docs
+          mkdir -p docs
+          cp -r "$tmp/." docs/
+          git add -f docs
+          git commit -m "Publish currency screener $(date -u +%Y-%m-%d)"
+          for attempt in 1 2 3 4; do
+            if git push -f origin pages-live; then
+              echo "pushed"; exit 0
+            fi
+            echo "push failed, retry $attempt"; sleep $((2 ** attempt))
+          done
+          echo "push failed after 4 attempts" >&2
+          exit 1

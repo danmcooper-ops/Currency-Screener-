@@ -1,0 +1,44 @@
+name: Deploy report to GitHub Pages
+
+# Publishes from the single-commit `pages-live` branch that build.yml
+# force-pushes. Keeping the artifacts off `main` is deliberate: the report is
+# regenerated in full every day, so versioning it would grow the repository
+# without ever producing a useful diff.
+
+on:
+  push:
+    branches: [pages-live]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Always deploy pages-live, even when dispatched from another branch.
+          ref: pages-live
+
+      - uses: actions/configure-pages@v5
+        with:
+          # Re-enables Pages if it was silently unpublished.
+          enablement: true
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs
+
+      - id: deployment
+        uses: actions/deploy-pages@v4
