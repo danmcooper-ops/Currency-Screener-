@@ -76,22 +76,40 @@ jobs:
       - name: Stage docs
         run: python scripts/publish_pages.py
 
-      - uses: actions/configure-pages@v5
+      # `enablement: true` can only create the Pages site if the token is
+      # allowed to; on a repository where Pages has never been turned on it
+      # fails with "Resource not accessible by integration". That is a
+      # one-time owner action (Settings > Pages), so it must not fail the
+      # build — the report is still built and mirrored below.
+      - id: pages
+        uses: actions/configure-pages@v5
+        continue-on-error: true
         with:
-          # Re-enables Pages if it was never turned on or got unpublished.
           enablement: true
 
-      - uses: actions/upload-pages-artifact@v3
+      - if: steps.pages.outcome == 'success'
+        uses: actions/upload-pages-artifact@v3
         with:
           path: docs
 
       - id: deployment
+        if: steps.pages.outcome == 'success'
         uses: actions/deploy-pages@v4
 
-      # Archival copy only — see the header note. Single-commit orphan branch,
-      # force-pushed each run, so the ~660 KB daily report never accumulates
-      # in git history. Non-fatal: the site is already deployed by this point.
+      - name: Pages not enabled
+        if: steps.pages.outcome != 'success'
+        run: |
+          echo "::warning title=GitHub Pages not enabled::Built the report but \
+          could not deploy. Enable Pages once at Settings > Pages (set Source \
+          to 'GitHub Actions'), then re-run this workflow. Until then the \
+          latest report is on the pages-live branch under docs/."
+
+      # Archival copy. Single-commit orphan branch, force-pushed each run, so
+      # the ~660 KB daily report never accumulates in git history. Runs even
+      # when the deploy was skipped, so pages-live is always the current
+      # report and can serve the site via "Deploy from a branch".
       - name: Mirror to pages-live
+        if: always()
         continue-on-error: true
         env:
           GIT_AUTHOR_NAME: github-actions[bot]
