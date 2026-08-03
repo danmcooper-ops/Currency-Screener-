@@ -1,4 +1,16 @@
-name: Build currency screener
+name: Build and publish currency screener
+
+# Builds the report and deploys it straight to GitHub Pages in one job.
+#
+# An earlier version split this in two — build pushed a `pages-live` branch
+# and a second workflow deployed on push to it. That chain cannot work:
+# push-triggered workflows are read from the *pushed branch's* tree, and
+# `pages-live` holds only docs/, so there was no workflow file there to run.
+# Deploying the artifact directly removes the coupling entirely.
+#
+# `pages-live` is still updated, but only as a fallback: it lets Pages serve
+# the site via Settings > Pages > "Deploy from a branch" without Actions
+# running at all. Nothing in this workflow depends on it.
 
 on:
   schedule:
@@ -18,14 +30,19 @@ on:
 
 permissions:
   contents: write
+  pages: write
+  id-token: write
 
 concurrency:
-  group: build
+  group: pages
   cancel-in-progress: false
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
 
@@ -53,10 +70,29 @@ jobs:
       - name: Build report
         run: python scripts/analyze_currencies.py
 
+      - name: Gate coverage report
+        run: python scripts/gate_coverage.py output/results_*.json
+
       - name: Stage docs
         run: python scripts/publish_pages.py
 
-      - name: Publish to pages-live
+      - uses: actions/configure-pages@v5
+        with:
+          # Re-enables Pages if it was never turned on or got unpublished.
+          enablement: true
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs
+
+      - id: deployment
+        uses: actions/deploy-pages@v4
+
+      # Archival copy only — see the header note. Single-commit orphan branch,
+      # force-pushed each run, so the ~660 KB daily report never accumulates
+      # in git history. Non-fatal: the site is already deployed by this point.
+      - name: Mirror to pages-live
+        continue-on-error: true
         env:
           GIT_AUTHOR_NAME: github-actions[bot]
           GIT_AUTHOR_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
@@ -64,22 +100,12 @@ jobs:
           GIT_COMMITTER_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
         run: |
           set -euo pipefail
-          # Single-commit orphan branch, amended and force-pushed each run, so
-          # the ~650 KB daily report never accumulates in git history.
           tmp="$(mktemp -d)"
           cp -r docs/. "$tmp/"
           git checkout --orphan pages-live
           git rm -rf --cached . >/dev/null 2>&1 || true
-          rm -rf docs
-          mkdir -p docs
+          rm -rf docs && mkdir -p docs
           cp -r "$tmp/." docs/
           git add -f docs
           git commit -m "Publish currency screener $(date -u +%Y-%m-%d)"
-          for attempt in 1 2 3 4; do
-            if git push -f origin pages-live; then
-              echo "pushed"; exit 0
-            fi
-            echo "push failed, retry $attempt"; sleep $((2 ** attempt))
-          done
-          echo "push failed after 4 attempts" >&2
-          exit 1
+          git push -f origin pages-live

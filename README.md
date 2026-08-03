@@ -164,10 +164,28 @@ pillar is backwards. Pinned in `tests/test_live_endpoints.py`.
 
 ## Publishing
 
-`build.yml` runs daily at 06:20 UTC, then force-pushes a single-commit
-`pages-live` branch that `deploy-pages.yml` publishes. The report is
-regenerated in full every day, so versioning it on `main` would grow the
-repository without ever producing a useful diff.
+`build.yml` runs daily at 06:20 UTC (and on pushes to `main` that touch the
+model): it runs the tests, rebuilds the report, and deploys it straight to
+GitHub Pages via `actions/deploy-pages`. The artifacts are gitignored — the
+report is regenerated in full every day, so versioning it on `main` would grow
+the repository without ever producing a useful diff.
+
+The same job also force-pushes a single-commit `pages-live` branch holding
+`docs/`. That is **a fallback, not the mechanism**: it lets Pages serve the
+site through Settings → Pages → "Deploy from a branch" (`pages-live` / `docs`)
+with no Actions run at all. Nothing in the workflow depends on it.
+
+> An earlier version split this across two workflows, with `deploy-pages.yml`
+> triggering on pushes to `pages-live`. That could never have fired:
+> push-triggered workflows are read from the pushed branch's own tree, and
+> `pages-live` contains only `docs/` — no workflow file. Deploying the
+> artifact directly from the build job removes the coupling.
+
+**First-time setup.** Actions does not register workflows pushed by some app
+tokens, and Pages starts disabled on a new repository. If the Actions tab is
+empty, enable Actions under Settings → Actions → General, then run
+**Build and publish currency screener** once from the Actions tab. After that
+the daily schedule takes over.
 
 ## Caveats
 
