@@ -14,10 +14,18 @@ name: Build and publish currency screener
 
 on:
   schedule:
-    # 06:20 UTC daily. After the previous day's ECB reference rates are out
-    # (published ~16:00 CET) and off the top of the hour, where scheduled
-    # runners queue worst.
-    - cron: '20 6 * * *'
+    # Target: 16:15 America/New_York, weekdays.
+    #
+    # Cron here is fixed-UTC, and 16:15 New York is 20:15 UTC under EDT but
+    # 21:15 UTC under EST. Both are registered; scripts/should_build.py
+    # discards whichever one is not actually the 16:00 local hour, so exactly
+    # one survives on any given day and neither cron needs editing at the DST
+    # boundaries.
+    #
+    # Day-of-week is evaluated in UTC, but at 20-21 UTC the New York date is
+    # the same calendar day, so 1-5 really does mean Mon-Fri locally.
+    - cron: '15 20 * * 1-5'   # 16:15 EDT
+    - cron: '15 21 * * 1-5'   # 16:15 EST
   workflow_dispatch:
   push:
     # The github-pages environment only accepts deployments from the
@@ -58,12 +66,6 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install dependencies
-        run: pip install -r requirements.txt
-
-      - name: Run tests
-        run: python -m pytest -q
-
       # Upstream responses are cached on disk by data/cache.py. Restoring the
       # cache means a World Bank outage on build day is served from the last
       # good response instead of emptying the External pillar — the same
@@ -75,13 +77,43 @@ jobs:
           key: api-cache-${{ github.run_id }}
           restore-keys: api-cache-
 
+      # Scheduled runs only: drop the wrong-DST cron, and skip days the ECB
+      # published nothing (TARGET holiday, weekend, or an outage). Manual and
+      # push-triggered runs always build. A skip is not a failure, so this
+      # gates the later steps rather than exiting non-zero.
+      - id: gate
+        name: Should this run build?
+        run: |
+          if [ "${{ github.event_name }}" = "schedule" ]; then
+            python scripts/should_build.py --tz America/New_York --hour 16
+          else
+            echo "proceed=true" >> "$GITHUB_OUTPUT"
+            echo "reason=${{ github.event_name }} trigger — always builds" >> "$GITHUB_OUTPUT"
+            echo "proceed=true (${{ github.event_name }} trigger)"
+          fi
+
+      - name: Skipped
+        if: steps.gate.outputs.proceed != 'true'
+        run: echo "::notice title=Build skipped::${{ steps.gate.outputs.reason }}"
+
+      - name: Install dependencies
+        if: steps.gate.outputs.proceed == 'true'
+        run: pip install -r requirements.txt
+
+      - name: Run tests
+        if: steps.gate.outputs.proceed == 'true'
+        run: python -m pytest -q
+
       - name: Build report
+        if: steps.gate.outputs.proceed == 'true'
         run: python scripts/analyze_currencies.py
 
       - name: Gate coverage report
+        if: steps.gate.outputs.proceed == 'true'
         run: python scripts/gate_coverage.py output/results_*.json
 
       - name: Stage docs
+        if: steps.gate.outputs.proceed == 'true'
         run: python scripts/publish_pages.py
 
       # `enablement: true` can only create the Pages site if the token is
@@ -90,18 +122,19 @@ jobs:
       # one-time owner action (Settings > Pages), so it must not fail the
       # build — the report is still built and mirrored below.
       - id: pages
+        if: steps.gate.outputs.proceed == 'true'
         uses: actions/configure-pages@v5
         continue-on-error: true
         with:
           enablement: true
 
-      - if: steps.pages.outcome == 'success'
+      - if: steps.gate.outputs.proceed == 'true' && steps.pages.outcome == 'success'
         uses: actions/upload-pages-artifact@v3
         with:
           path: docs
 
       - id: deployment
-        if: steps.pages.outcome == 'success'
+        if: steps.gate.outputs.proceed == 'true' && steps.pages.outcome == 'success'
         uses: actions/deploy-pages@v4
 
       # Two distinct causes land here and the fix differs, so name both:
@@ -109,7 +142,7 @@ jobs:
       # a branch" (in which case Pages serves that branch and ignores this
       # workflow's artifact entirely).
       - name: Pages not deployable
-        if: steps.pages.outcome != 'success'
+        if: steps.gate.outputs.proceed == 'true' && steps.pages.outcome != 'success'
         run: |
           echo "::warning title=Pages artifact not deployed::Built the report \
           but could not deploy it. Either Pages is off, or its Source is set \
@@ -120,10 +153,14 @@ jobs:
 
       # Archival copy. Single-commit orphan branch, force-pushed each run, so
       # the ~660 KB daily report never accumulates in git history. Runs even
-      # when the deploy was skipped, so pages-live is always the current
-      # report and can serve the site via "Deploy from a branch".
+      # when the deploy failed, so pages-live still holds the current report
+      # and can serve the site via "Deploy from a branch".
+      #
+      # The gate condition is load-bearing, not belt-and-braces: on a skipped
+      # day docs/ is never built, and an unguarded always() would force-push an
+      # empty docs/ and wipe the branch.
       - name: Mirror to pages-live
-        if: always()
+        if: always() && steps.gate.outputs.proceed == 'true'
         continue-on-error: true
         env:
           GIT_AUTHOR_NAME: github-actions[bot]

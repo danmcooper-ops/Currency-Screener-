@@ -164,11 +164,31 @@ pillar is backwards. Pinned in `tests/test_live_endpoints.py`.
 
 ## Publishing
 
-`build.yml` runs daily at 06:20 UTC (and on pushes to `main` that touch the
-model): it runs the tests, rebuilds the report, and deploys it straight to
-GitHub Pages via `actions/deploy-pages`. The artifacts are gitignored — the
-report is regenerated in full every day, so versioning it on `main` would grow
-the repository without ever producing a useful diff.
+`build.yml` runs **weekdays at 16:15 America/New_York** (and on pushes that
+touch the model): it runs the tests, rebuilds the report, and deploys it
+straight to GitHub Pages via `actions/deploy-pages`. The artifacts are
+gitignored — the report is regenerated in full every run, so versioning it on
+`main` would grow the repository without ever producing a useful diff.
+
+Two scheduling problems are handled by `scripts/should_build.py` rather than by
+cron, which can express neither:
+
+**Daylight saving.** 16:15 New York is 20:15 UTC under EDT and 21:15 UTC under
+EST, and GitHub cron is fixed-UTC. Both crons are registered and the gate
+discards whichever is not currently the 16:00 local hour, so exactly one
+survives in either half of the year with no seasonal editing.
+
+**Bank holidays.** Instead of a hard-coded calendar — which would need annual
+maintenance and would encode one country's answer to a question about global
+data — the gate asks whether the ECB actually published today's reference
+rates. No new observation means nothing new to score, so the run is skipped.
+That covers TARGET holidays, weekends and outages with one rule, and it fails
+in the safe direction: rebuilding on a stale day would republish yesterday's
+rates stamped with today's date.
+
+A skipped run is a green run with a notice, not a failure. Missing a day costs
+nothing — every build regenerates from full history, so the next run is
+identical to the one that would have happened.
 
 The same job also force-pushes a single-commit `pages-live` branch holding
 `docs/`. That is **a fallback, not the mechanism**: it lets Pages serve the
