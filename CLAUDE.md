@@ -38,10 +38,23 @@ transient 502 must not become "this indicator has no data" for 30 days.
 different national holiday calendars. `ecb_client.to_usd_series` is the
 reference implementation.
 
-**Every gate change touches three places.** A gate in `scripts/scoring.py`
-needs a matching `_GATE_DISPLAY` entry, or the report renders a column
-labelled with the raw field name. `tests/test_gates.py` enforces this in both
-directions — no gate without display metadata, no orphan metadata.
+**Every gate change touches three places in `scripts/scoring.py`:** the
+`GATES` entry itself, a `_GATE_DISPLAY` entry (or the report renders a column
+labelled with the raw field name), and a `_GATE_TIPS` entry (or the column
+ships with no way to find out what it measures). `tests/test_gates.py`
+enforces all three in both directions — no gate without display metadata or a
+tooltip, and no orphans of either.
+
+Tooltip copy lives in Python, not the template, so `gate_metadata()` carries
+it to the report and the text cannot drift from the gate it describes. Write
+what the measure is *and why it is built that way* — the reasoning is
+otherwise buried in code comments a report reader never sees. A tooltip that
+restates its own column label is worse than none, and the tests reject
+anything under 60 characters on that basis.
+
+**Careful with `{` immediately followed by `#` in `templates/report.html`.**
+Jinja reads it as a comment opener and the template fails to parse. CSS like
+`@media(...){#id{...}}` needs a space after the brace.
 
 **Calibrate score ranges against the observed cross-section**, not textbook
 extremes. The Stability pillar originally used a 3–30% volatility range when

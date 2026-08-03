@@ -156,6 +156,23 @@ tbody tr:hover td{background:var(--line-soft)}
   padding:10px;background:var(--panel)}
 .spark svg{width:100%;height:120px;display:block;overflow:visible}
 
+/* Tooltip. One element reused for every target, positioned on show and
+   clamped to the viewport so a right-edge column doesn't push the page wide. */
+#tip{position:fixed;z-index:120;max-width:340px;pointer-events:none;
+  background:var(--ink);color:var(--bg);border-radius:7px;padding:9px 11px;
+  font-size:12.5px;line-height:1.45;box-shadow:var(--shadow);
+  opacity:0;transition:opacity .12s;font-weight:400;text-transform:none;
+  letter-spacing:normal;text-align:left;white-space:normal}
+#tip.on{opacity:1}
+#tip b{display:block;margin-bottom:3px;font-size:11px;text-transform:uppercase;
+  letter-spacing:.05em;opacity:.75}
+[data-tip]{cursor:help}
+th[data-tip]{cursor:pointer}
+/* The space after the opening brace is required: an open-brace immediately
+   followed by a hash starts a Jinja comment, and the template would fail to
+   parse. Same reason this note spells it out instead of showing it. */
+@media(prefers-reduced-motion:reduce){ #tip{transition:none} }
+
 footer{border-top:1px solid var(--line);margin-top:26px;padding:18px 20px 40px;
   color:var(--ink-dim);font-size:12px}
 footer .wrap{padding:0;max-width:1560px}
@@ -232,6 +249,7 @@ footer code{font-family:var(--mono);font-size:11px}
 </div>
 
 <div class="mask" id="mask"><div class="modal" id="modal"></div></div>
+<div id="tip" role="tooltip" aria-hidden="true"></div>
 
 <footer><div class="wrap">
   <div id="provline"></div>
@@ -274,6 +292,70 @@ function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){
   return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
 function ratingCls(r){return 'r-'+String(r||'UNRATED').replace(/ /g,'');}
 
+/* ---------------------------------------------------------------- tooltip */
+/* Delegated rather than bound per element: the table, matrix and modal all
+   re-render on every filter and sort, so anything bound directly would be
+   thrown away and would need rebinding at each of those call sites. */
+var _TIP=document.getElementById('tip'), _TIPT=null;
+
+function _placeTip(el){
+  var r=el.getBoundingClientRect(), pad=10;
+  _TIP.style.left='0px'; _TIP.style.top='0px';   // measure unclamped
+  var t=_TIP.getBoundingClientRect();
+  var x=r.left+r.width/2-t.width/2;
+  var y=r.bottom+8;
+  if(y+t.height>innerHeight-pad) y=r.top-t.height-8;  // flip above
+  if(y<pad) y=pad;
+  x=Math.max(pad,Math.min(x,innerWidth-t.width-pad));
+  _TIP.style.left=x+'px'; _TIP.style.top=y+'px';
+}
+function showTip(el){
+  var txt=el.getAttribute('data-tip'); if(!txt)return;
+  var label=el.getAttribute('data-tip-title');
+  _TIP.innerHTML=(label?'<b>'+esc(label)+'</b>':'')+esc(txt);
+  _TIP.classList.add('on'); _TIP.setAttribute('aria-hidden','false');
+  _placeTip(el);
+}
+function hideTip(){
+  _TIP.classList.remove('on'); _TIP.setAttribute('aria-hidden','true');
+}
+function _tipTarget(e){
+  var el=e.target;
+  while(el&&el!==document){ if(el.getAttribute&&el.getAttribute('data-tip'))return el;
+                            el=el.parentNode; }
+  return null;
+}
+document.addEventListener('mouseover',function(e){
+  var el=_tipTarget(e); if(el){clearTimeout(_TIPT);_TIPT=setTimeout(function(){showTip(el);},120);}
+});
+document.addEventListener('mouseout',function(e){
+  if(_tipTarget(e)){clearTimeout(_TIPT);hideTip();}
+});
+document.addEventListener('focusin',function(e){
+  var el=_tipTarget(e); if(el)showTip(el);
+});
+document.addEventListener('focusout',hideTip);
+document.addEventListener('keydown',function(e){if(e.key==='Escape')hideTip();});
+addEventListener('scroll',hideTip,true);
+
+function tipAttr(text,title){
+  if(!text)return '';
+  return ' data-tip="'+esc(text)+'"'+(title?' data-tip-title="'+esc(title)+'"':'')+
+         ' tabindex="0"';
+}
+
+/* A capped rating is the one place the headline number and the verdict
+   disagree, so the tooltip explains that row specifically rather than
+   repeating the generic band description. */
+function _ratingTip(r){
+  if(r._rating_cap&&r._rating_cap_reasons&&r._rating_cap_reasons.length){
+    return 'Scored '+(isNum(r._composite_score)?r._composite_score.toFixed(1):'n/a')+
+           ', which reads '+r.rating_raw+' — capped to '+r._rating_cap+
+           ' because: '+r._rating_cap_reasons.join('; ')+'.';
+  }
+  return GM.ui.rating;
+}
+
 /* ------------------------------------------------------------------ state */
 var S={view:'table',q:'',ratings:{},floatOnly:false,sort:'_composite_score',dir:-1};
 var BY_CODE={};DATA.forEach(function(r){BY_CODE[r.code]=r;});
@@ -313,8 +395,10 @@ function cellHTML(r,c){
   switch(c.f){
     case 'code': return '<span class="code">'+esc(v)+'</span>';
     case 'text': return v==null?'<span class="na">&mdash;</span>':esc(v);
-    case 'reg':  return '<span class="reg">'+esc(v)+'</span>';
-    case 'pill': return '<span class="pill '+ratingCls(v)+'">'+esc(v)+'</span>';
+    case 'reg':  return '<span class="reg"'+tipAttr(GM.ui.regime,'Regime: '+v)+
+                        '>'+esc(v)+'</span>';
+    case 'pill': return '<span class="pill '+ratingCls(v)+'"'+
+                        tipAttr(_ratingTip(r),'Rating')+'>'+esc(v)+'</span>';
     case 'bar':  return scoreCell(v);
     case 'sc':   return isNum(v)?'<span class="num">'+v.toFixed(0)+'</span>'
                                :'<span class="na">&mdash;</span>';
@@ -353,10 +437,27 @@ function sorted(rows){
 }
 
 /* ------------------------------------------------------------ table render */
+/* Resolve a column's tooltip from the gate metadata, so the table, the matrix
+   and the detail panel all quote the same text for the same measure. */
+var _GATE_BY_FIELD={}, _GATE_BY_KEY={}, _CAT_BY_KEY={};
+GM.gates.forEach(function(g){_GATE_BY_FIELD[g.field]=g;_GATE_BY_KEY[g.key]=g;});
+GM.categories.forEach(function(c){_CAT_BY_KEY[c.scoreKey]=c;});
+
+function colTip(key){
+  if(_GATE_BY_FIELD[key])return _GATE_BY_FIELD[key].tip;
+  if(_CAT_BY_KEY[key])return _CAT_BY_KEY[key].tip;
+  var m={_composite_score:'composite', rating:'rating', regime:'regime',
+         _gates_passed:'gates', _data_coverage_score:'coverage',
+         policy_rate:'policy_rate', inflation_pct:'inflation_pct',
+         name:'name'};
+  return m[key]?(GM.ui[m[key]]||''):'';
+}
+
 function renderHead(){
   var h='<tr>';
   COLS.forEach(function(c){
-    h+='<th class="'+(c.l?'l ':'')+(S.sort===c.k?'sorted':'')+'" data-k="'+c.k+'">'+
+    h+='<th class="'+(c.l?'l ':'')+(S.sort===c.k?'sorted':'')+'" data-k="'+c.k+'"'+
+       tipAttr(colTip(c.k),c.t)+'>'+
        esc(c.t)+(S.sort===c.k?(S.dir>0?' ↑':' ↓'):'')+'</th>';
   });
   document.getElementById('thead').innerHTML=h+'</tr>';
@@ -397,17 +498,22 @@ function renderMatrix(){
          '<th class="l" rowspan="2" data-k="rating">Rating</th>';
   cats.forEach(function(c){
     var n=gates.filter(function(g){return g.category===c.name;}).length;
-    r1+='<th class="cat" colspan="'+(n+1)+'" style="background:'+c.dark+'">'+
+    r1+='<th class="cat" colspan="'+(n+1)+'" style="background:'+c.dark+'"'+
+        tipAttr(c.tip,c.name+' · '+Math.round(c.weight*100)+'% of composite')+'>'+
         esc(c.name)+' &middot; '+Math.round(c.weight*100)+'%</th>';
   });
   r1+='</tr><tr>';
   cats.forEach(function(c){
     gates.filter(function(g){return g.category===c.name;}).forEach(function(g){
       r1+='<th class="g" style="background:'+c.light+';color:#1a1d21" data-k="'+
-          g.key+'">'+esc(g.label)+'<span class="thr">'+esc(g.threshold)+'</span></th>';
+          g.key+'"'+tipAttr(g.tip,g.label+'  (pass: '+g.threshold+')')+'>'+
+          esc(g.label)+'<span class="thr">'+esc(g.threshold)+'</span></th>';
     });
     r1+='<th class="g tot" style="background:'+c.light+';color:#1a1d21" data-k="'+
-        c.scoreKey+'">Total</th>';
+        c.scoreKey+'"'+tipAttr('Average of the '+c.name+' gates that apply to '+
+        'this currency, weighted within the pillar. Gates that cannot describe '+
+        'a currency are excluded from the average rather than scored zero.',
+        c.name+' total')+'>Total</th>';
   });
   document.getElementById('mhead').innerHTML=r1+'</tr>';
 
@@ -507,8 +613,9 @@ function renderMap(){
 }
 
 /* ---------------------------------------------------------------- detail */
-function kv(label,val,cls){
-  return '<div class="kv"><span'+(cls?' class="'+cls+'"':'')+'>'+esc(label)+
+function kv(label,val,cls,tip,tipTitle){
+  return '<div class="kv"><span'+(cls?' class="'+cls+'"':'')+
+         (tip?tipAttr(tip,tipTitle):'')+'>'+esc(label)+
          '</span>'+(val===null||val===undefined
            ? '<b class="na">&mdash;</b>' : '<b>'+val+'</b>')+'</div>';
 }
@@ -539,10 +646,14 @@ function openDetail(code){
     '<h2>'+esc(r.code)+' &middot; '+esc(r.name)+'</h2>'+
     '<p class="sub" style="margin:5px 0 0">'+
       '<span class="pill '+ratingCls(r.rating)+'">'+esc(r.rating)+'</span> '+
-      '&nbsp;composite <b class="num">'+(isNum(r._composite_score)?r._composite_score.toFixed(1):'n/a')+
-      '</b> &middot; gates '+esc(r._gates_passed||'')+
-      ' &middot; coverage '+(isNum(r._data_coverage_score)?r._data_coverage_score.toFixed(0)+'%':'n/a')+
-      ' &middot; <span class="reg">'+esc(r.regime)+'</span></p>';
+      '&nbsp;<span'+tipAttr(GM.ui.composite,'Composite')+'>composite <b class="num">'+
+      (isNum(r._composite_score)?r._composite_score.toFixed(1):'n/a')+'</b></span>'+
+      ' &middot; <span'+tipAttr(GM.ui.gates,'Gates passed')+'>gates '+
+      esc(r._gates_passed||'')+'</span>'+
+      ' &middot; <span'+tipAttr(GM.ui.coverage,'Data coverage')+'>coverage '+
+      (isNum(r._data_coverage_score)?r._data_coverage_score.toFixed(0)+'%':'n/a')+'</span>'+
+      ' &middot; <span class="reg"'+tipAttr(GM.ui.regime,'Regime: '+r.regime)+'>'+
+      esc(r.regime)+'</span></p>';
 
   if(r._rating_cap&&r._rating_cap_reasons&&r._rating_cap_reasons.length){
     h+='<div class="note"><b>Rating capped at '+esc(r._rating_cap)+
@@ -550,23 +661,28 @@ function openDetail(code){
        r._rating_cap_reasons.map(function(x){return esc(x);}).join('<br>')+'</div>';
   }
 
-  h+='<div class="spark">'+(sparkSVG(r.spark)||
-      '<span class="dim">No price history.</span>')+'</div>';
+  h+='<div class="spark"'+tipAttr(GM.ui.spark,'Price history')+'>'+
+     (sparkSVG(r.spark)||'<span class="dim">No price history.</span>')+'</div>';
 
   h+='<div class="mgrid">';
   GM.categories.forEach(function(c){
     var gs=GM.gates.filter(function(g){return g.category===c.name;});
     var sc=r[c.scoreKey];
-    h+='<div class="card"><h3 style="background:'+c.dark+'">'+esc(c.name)+
-       ' &middot; '+(isNum(sc)?sc.toFixed(0):'n/a')+'</h3>';
+    h+='<div class="card"><h3 style="background:'+c.dark+'"'+
+       tipAttr(c.tip,c.name+' · '+Math.round(c.weight*100)+'% of composite')+'>'+
+       esc(c.name)+' &middot; '+(isNum(sc)?sc.toFixed(0):'n/a')+'</h3>';
     gs.forEach(function(g){
       var gp=r[g.gpKey],v=r[g.key],s=r[g.scoreKey];
       var mark=gp===true?'✓ ':gp===false?'✗ ':'';
-      var shown=(gp===null||gp===undefined)
+      var na=(gp===null||gp===undefined);
+      var shown=na
         ? null
         : (fmtBy(g.fmt,v)||'—')+'  <span class="dim">'+
           (isNum(s)?s.toFixed(0):'')+'</span>';
-      h+=kv(mark+g.label,shown);
+      // An N/A row is the one that most needs explaining, so append the
+      // two-kinds-of-N/A note rather than leaving a bare dash.
+      var tip=g.tip+(na?'  —  '+GM.ui.na:'  Passes when '+g.threshold+'.');
+      h+=kv(mark+g.label,shown,null,tip,g.label);
     });
     h+='</div>';
   });

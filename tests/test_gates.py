@@ -8,8 +8,8 @@ ship a column labelled with a raw field name.
 from data import currency_meta
 from scripts.config import PILLAR_ORDER, PILLAR_WEIGHTS
 from scripts.scoring import (
-    GATES, _GATE_DISPLAY, _gate_key, _gate_short, _gp_key, _score_key,
-    gate_metadata,
+    GATES, _GATE_DISPLAY, _GATE_TIPS, _PILLAR_TIPS, _UI_TIPS, _gate_key,
+    _gate_short, _gp_key, _score_key, gate_metadata,
 )
 
 
@@ -46,6 +46,55 @@ def test_display_metadata_has_no_orphans():
     fields = {g.field for g in GATES}
     for field in _GATE_DISPLAY:
         assert field in fields, 'stale _GATE_DISPLAY entry: %s' % field
+
+
+def test_every_gate_has_a_tooltip():
+    for g in GATES:
+        assert g.field in _GATE_TIPS, (
+            'gate %r has no tooltip; the report would show a bare column with '
+            'no way to find out what it measures' % g.name)
+
+
+def test_tooltips_have_no_orphans():
+    fields = {g.field for g in GATES}
+    for field in _GATE_TIPS:
+        assert field in fields, 'stale tooltip for retired gate: %s' % field
+
+
+def test_every_pillar_has_a_tooltip():
+    for pillar in PILLAR_ORDER:
+        assert _PILLAR_TIPS.get(pillar), pillar
+    for pillar in _PILLAR_TIPS:
+        assert pillar in PILLAR_ORDER, 'stale pillar tooltip: %s' % pillar
+
+
+def test_tooltips_say_more_than_the_label():
+    """A tooltip that only restates its column heading is worse than none.
+
+    Cheap proxy for that: real explanations run to a sentence or more.
+    """
+    for g in GATES:
+        tip = _GATE_TIPS[g.field]
+        label = _GATE_DISPLAY[g.field][0]
+        assert len(tip) > 60, '%s: tooltip too short to explain anything' % g.name
+        assert tip.strip().lower() != label.strip().lower(), g.name
+
+
+def test_ui_tooltips_cover_the_keys_the_template_asks_for():
+    """The template resolves these by name; a missing key renders an empty
+    tooltip attribute and the element silently loses its explanation."""
+    for key in ('composite', 'rating', 'gates', 'coverage', 'regime', 'na',
+                'spark', 'policy_rate', 'inflation_pct', 'name'):
+        assert _UI_TIPS.get(key), 'missing UI tooltip: %s' % key
+
+
+def test_metadata_carries_tooltips_to_the_report():
+    gm = gate_metadata()
+    for meta in gm['gates']:
+        assert meta['tip'], meta['name']
+    for cat in gm['categories']:
+        assert cat['tip'], cat['name']
+    assert gm['ui']
 
 
 def test_pillar_weights_sum_to_one():

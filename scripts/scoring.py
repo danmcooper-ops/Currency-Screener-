@@ -555,6 +555,168 @@ def _purge_stale_gate_fields(results):
 # Report-facing metadata
 # ---------------------------------------------------------------------------
 
+# Prose explanation per gate, surfaced as a hover tooltip in the report.
+#
+# These say what the measure is and *why it is built that way* — the reasoning
+# is otherwise buried in this file's comments, where a reader of the report
+# will never see it. A tooltip that only restates its own column label is
+# worse than none, so none of these do.
+#
+# tests/test_gates.py enforces this map against GATES in both directions: no
+# gate without a tooltip, no tooltip without a gate.
+_GATE_TIPS = {
+    'reer_z20':
+        'Where the real effective exchange rate sits in its own 20-year '
+        'distribution, in standard deviations. Negative is cheap. Normalising '
+        'by each currency’s own volatility is what makes −1.5 mean the '
+        'same thing for CHF as for TRY, which a raw percentage gap would not. '
+        'Double-weighted — this is the model’s primary thesis.',
+    'reer_dev10':
+        'The current real exchange rate against its own 10-year average. '
+        '−20% means it buys a fifth less abroad than its decade norm. '
+        'Answers “how far”, where the z-score answers “how unusual”.',
+    'reer_dev5':
+        'The same measure over five years. Not redundant with the 10-year '
+        'reading: the two disagree exactly when a currency’s regime has '
+        'shifted within the decade, and that disagreement is itself a signal.',
+    'real_carry':
+        'This currency’s real policy rate minus the US dollar’s. '
+        'Double-weighted over nominal carry on purpose: ranking on nominal '
+        'alone puts every high-inflation currency at the top of the book, '
+        'which is the classic way carry trades lose money.',
+    'nominal_carry':
+        'The policy-rate differential against USD, before inflation. What the '
+        'position pays in nominal terms — informative, but on its own a trap.',
+    'real_policy_rate':
+        'Policy rate minus annual CPI inflation. A 37% rate against 35% '
+        'inflation is roughly break-even, not a 37% yield.',
+    'carry_to_vol':
+        'Carry per unit of realised volatility. Four points of carry on a '
+        '6%-volatility currency is a different proposition from four points on '
+        'a 25% one. Scored by rank within the universe rather than a fixed '
+        'scale, because “good” depends on the volatility regime of the moment.',
+    'current_account_pct_gdp':
+        'The current account balance as a share of GDP; positive is a surplus. '
+        'The best single summary of whether a country can fund itself without '
+        'selling its own currency.',
+    'reserves_months_imports':
+        'FX reserves expressed as months of import cover. Three months is the '
+        'conventional adequacy floor.',
+    'inflation_gap':
+        'Distance outside the 1–3% target band, in percentage points. '
+        'Scored as a gap rather than a level so that deflation is penalised '
+        'like inflation — on a raw reading, a deflating economy would screen '
+        'as maximally price-stable.',
+    'gdp_growth_pct':
+        'Annual real GDP growth. Slow-moving and one to two years stale by '
+        'construction, so this pillar acts as a solvency filter rather than a '
+        'timing signal.',
+    'ret_12m_1m':
+        'The twelve-month return against USD, excluding the most recent month. '
+        'The skip is deliberate: one-month FX moves tend to reverse while '
+        'three-to-twelve-month moves tend to continue, and blending the two '
+        'blunts both.',
+    'ret_3m':
+        'Spot return against the US dollar over roughly three months. Positive '
+        'means the currency appreciated.',
+    'spot_vs_ma200':
+        'Spot against its own 200-day moving average. Above zero is trading '
+        'above trend.',
+    'reer_trend_6m':
+        'Six-month change in the real effective exchange rate. Nominal spot '
+        'can drift on an inflation differential alone; a rising REER means '
+        'real purchasing power is genuinely improving.',
+    'vol_1y':
+        'Annualised standard deviation of daily log returns over one year. '
+        'The scoring range is calibrated to this universe’s observed '
+        '4–12% span rather than textbook extremes — a wider range '
+        'compressed every currency into the same score and made the pillar a '
+        'constant offset.',
+    'max_dd_3y':
+        'The largest peak-to-trough fall against USD over three years. Catches '
+        'what volatility misses: a managed crawl posts very low volatility '
+        'while still losing a great deal of ground.',
+    'vol_ratio':
+        'Three-month volatility divided by one-year. Above 1 means the '
+        'currency is more turbulent than its own baseline — an early '
+        'warning that fires months before annual macro data would show '
+        'anything.',
+    'inflation_vol':
+        'Standard deviation of the annual inflation series. Persistent price '
+        'instability, which is a different fact from the current inflation '
+        'level scored in the External pillar.',
+}
+
+# Pillar-level explanations, including why each carries the weight it does.
+_PILLAR_TIPS = {
+    'Valuation':
+        'Is the real exchange rate cheap against its own history? The heaviest '
+        'pillar, because mean reversion in the real exchange rate is the '
+        'best-evidenced medium-horizon effect in FX — and because it rests '
+        'entirely on BIS REER, the most reliable source in the project.',
+    'Carry':
+        'What does holding this currency pay, net of inflation? Reliable '
+        'positive expectancy with a fat left tail, which is why real carry '
+        'outweighs nominal carry inside the pillar.',
+    'External':
+        'Can the country fund itself without depreciating? Annual data, one to '
+        'two years stale by construction — a solvency filter rather than a '
+        'timing signal.',
+    'Momentum':
+        'Has the repricing started? Deliberately light: momentum is a '
+        'confirmation overlay on valuation, not an independent thesis.',
+    'Stability':
+        'What the position costs in risk. Light because it is partly '
+        'double-counted inside carry-to-vol, and because pegs — which would '
+        'otherwise sweep it — are masked out of its market-risk gates.',
+}
+
+# Explanations for the report’s non-gate columns and UI concepts.
+_UI_TIPS = {
+    'composite':
+        'The weighted average of the five pillar scores, over the pillars that '
+        'apply to this currency. The denominator renormalises, so a pillar '
+        'dropping out rescales the rest instead of dragging the score to zero.',
+    'rating':
+        'LONG ≥ 57, LEAN LONG ≥ 39, NEUTRAL ≥ 25, otherwise AVOID — '
+        'then capped. Thresholds are provisional: they are set on the '
+        'composite’s natural scale, not yet calibrated against forward returns.',
+    'gates':
+        'Gates passed out of gates that apply. The denominator varies by '
+        'currency because structurally inapplicable gates are excluded from '
+        'it — a peg is not failed for having no volatility signal.',
+    'coverage':
+        'The share of applicable gates that actually had data. Below 25% the '
+        'composite is an artifact of what happened to be missing, and the '
+        'rating is capped at NEUTRAL.',
+    'regime':
+        'float — freely floating, every gate applies. managed — heavily '
+        'leaned against, gates still apply. peg — hard peg or currency board: '
+        'valuation and market-risk gates describe the anchor, not this '
+        'currency, so they are switched off and the rating is capped.',
+    'na':
+        'Grey means not applicable, and there are two kinds. Structurally '
+        'inapplicable gates leave both the numerator and the denominator, so '
+        'the pillar renormalises. Missing data scores zero and stays in the '
+        'denominator, so sparse coverage remains penalised.',
+    'spark':
+        'US dollars per unit of this currency, sampled weekly over ten years. '
+        'Rising means the currency strengthened against the dollar.',
+    # Displayed columns that are inputs to gates rather than gates themselves.
+    'policy_rate':
+        'The central bank’s policy rate, from BIS. Shown as a level; what the '
+        'model actually scores is the differential against USD, and the same '
+        'rate net of inflation.',
+    'inflation_pct':
+        'Latest annual CPI inflation, from the World Bank. Annual data, so it '
+        'lags the monthly policy rate it is subtracted from — a real-rate '
+        'reading here mixes vintages.',
+    'name':
+        'Click any row for the full metric breakdown: every gate with its '
+        'value and score, the ten-year price history, and any rating caps.',
+}
+
+
 # Display formatting per gate field. 'pct' = fraction rendered as a percent,
 # 'pp' = already in percentage points, 'num' = plain number, 'x' = ratio.
 _GATE_DISPLAY = {
@@ -603,6 +765,7 @@ def gate_metadata(params=None):
             'fmt': fmt,
             'weight': g.weight,
             'relative': bool(g.relative_mode),
+            'tip': _GATE_TIPS.get(g.field, ''),
             'key': _gate_key(g.name),
             'gpKey': _gp_key(g.name),
             'scoreKey': _score_key(g.name),
@@ -615,11 +778,13 @@ def gate_metadata(params=None):
         'light': PILLAR_COLORS[c]['light'],
         'scoreKey': '_score_pillar_' + c.lower(),
         'count': sum(1 for g in GATES if g.category == c),
+        'tip': _PILLAR_TIPS.get(c, ''),
     } for c in PILLAR_ORDER]
 
     return {
         'gates': gates,
         'categories': categories,
+        'ui': dict(_UI_TIPS),
         'ratings': ['LONG', 'LEAN LONG', 'NEUTRAL', 'AVOID'],
         'thresholds': {
             'long': p.get('rating_threshold_long', RATING_THRESHOLD_LONG),
