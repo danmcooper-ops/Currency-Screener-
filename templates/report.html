@@ -128,19 +128,34 @@ tbody tr:hover td{background:var(--line-soft)}
   color:var(--ink-dim);flex-wrap:wrap}
 .legend i{width:26px;height:11px;display:inline-block;border-radius:2px}
 
-/* Detail modal.
-   The overlay is sized from the *dynamic* viewport, not from `inset:0`.
-   iOS resolves the height of a `position:fixed` box against the layout
-   viewport, which keeps the size it had with the address bar collapsed; the
-   overlay then stops short of the bottom of the screen and the table shows
-   through underneath it, which reads as the page splitting between the table
-   and the popup. `100dvh` tracks the bar on modern Safari, and JS overrides
-   this with a measured visualViewport height where that is available. Older
-   engines drop the `dvh` declaration at parse time and fall back to `inset`. */
-.mask{position:fixed;inset:0;height:100dvh;
-  background:rgba(0,0,0,.45);z-index:90;
+/* Detail modal. Two jobs that iOS will not let one box do at once: cover the
+   screen, and bound the panel to what is actually visible.
+
+   Covering is `inset:0`, which resolves against the layout viewport. On iOS
+   that is the *large* viewport — the size the page has with the address bar
+   collapsed — so it is always at least the visible area. Nothing shows
+   through underneath it in any toolbar state. That is the scrim's only job,
+   so it lives on a pseudo-element and is measured that way.
+
+   Bounding is `100svh`: the *small* viewport, the height with the browser
+   chrome fully expanded. Whatever the bar is doing, the panel fits. `dvh`
+   would track the bar more exactly, but it changes mid-gesture as the bar
+   collapses, and it is the value at the moment the panel opens that decides
+   whether the bottom of the panel is reachable — pinning the body to lock
+   background scrolling re-expands the address bar, so a height measured an
+   instant earlier is measured against a screen that no longer exists, and
+   the last inch of the panel ends up below the fold with the overlay
+   clipped and no way to scroll to it. `svh` cannot be wrong in that
+   direction: it is the smallest the viewport ever gets.
+
+   Anything left over between the two — the strip the collapsed toolbar frees
+   up — is scrim, not table. Engines without `svh` (below iOS 15.4) drop that
+   declaration at parse time and are sized from `visualViewport` by JS. */
+.mask{position:fixed;inset:0;height:100svh;z-index:90;
   display:none;align-items:flex-start;justify-content:center;padding:24px;
   overflow:hidden;overscroll-behavior:contain}
+.mask::before{content:"";position:fixed;inset:0;z-index:-1;
+  background:rgba(0,0,0,.45)}
 .mask.open{display:flex}
 /* The modal scrolls, the overlay does not. Scrolling the overlay chains to
    the page behind it on iOS, which drags the table into view alongside the
@@ -786,24 +801,18 @@ function sparkSVG(spark){
 }
 
 /* ------------------------------------------------------- modal viewport */
-/* Two iOS problems, one fix each.
-
-   Size: a fixed overlay at `height:100%` is measured against the layout
-   viewport, which does not shrink when the address bar is showing. The
-   overlay ends above the bottom of the screen and the table is visible below
-   it. `visualViewport.height` is the only measurement that follows the bar,
-   so read it on open and again whenever it changes.
-
-   Scroll: nothing stops the page behind the overlay from scrolling on touch,
-   so a drag inside the popup moves the table underneath it and — worse —
-   collapses the address bar mid-gesture, resizing the overlay while the
-   finger is still down. Pinning the body is the only reliable lock on iOS:
-   `overflow:hidden` alone is ignored there. The scroll offset moves onto
-   `top` so the page does not jump, and is restored on close. */
-var _MASK=document.getElementById('mask'),_lockY=0,_locked=false;
+/* Sizing the overlay is `100svh`'s job wherever `svh` exists. This is the
+   fallback for engines below iOS 15.4, and it is deliberately not the
+   primary path: `visualViewport.height` has to be sampled at some instant,
+   and the instant the panel opens is the worst one available — pinning the
+   body a line earlier re-expands the address bar, so the number describes a
+   screen that is about to change. Re-measuring on every viewport event is
+   what makes it survivable, and `svh` is what makes it unnecessary. */
+var _MASK=document.getElementById('mask'),_lockY=0,_locked=false,
+    _SVH=!!(window.CSS&&CSS.supports&&CSS.supports('height','100svh'));
 
 function sizeMask(){
-  if(!_MASK.classList.contains('open'))return;
+  if(_SVH||!_MASK.classList.contains('open'))return;
   var vv=window.visualViewport;
   /* Skip while pinch-zoomed: the visual viewport is then a crop of the page
      rather than the screen, and matching it would shrink the popup. */
