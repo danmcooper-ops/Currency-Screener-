@@ -128,15 +128,49 @@ tbody tr:hover td{background:var(--line-soft)}
   color:var(--ink-dim);flex-wrap:wrap}
 .legend i{width:26px;height:11px;display:inline-block;border-radius:2px}
 
-/* Detail modal */
-.mask{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:90;
+/* Detail modal.
+   The overlay is sized from the *dynamic* viewport, not from `inset:0`.
+   iOS resolves the height of a `position:fixed` box against the layout
+   viewport, which keeps the size it had with the address bar collapsed; the
+   overlay then stops short of the bottom of the screen and the table shows
+   through underneath it, which reads as the page splitting between the table
+   and the popup. `100dvh` tracks the bar on modern Safari, and JS overrides
+   this with a measured visualViewport height where that is available. Older
+   engines drop the `dvh` declaration at parse time and fall back to `inset`. */
+.mask{position:fixed;inset:0;height:100dvh;
+  background:rgba(0,0,0,.45);z-index:90;
   display:none;align-items:flex-start;justify-content:center;padding:24px;
-  overflow-y:auto}
+  overflow:hidden;overscroll-behavior:contain}
 .mask.open{display:flex}
+/* The modal scrolls, the overlay does not. Scrolling the overlay chains to
+   the page behind it on iOS, which drags the table into view alongside the
+   popup and collapses the address bar mid-gesture, resizing the overlay under
+   the user's thumb. */
 .modal{background:var(--bg);border:1px solid var(--line);border-radius:12px;
-  box-shadow:var(--shadow);width:min(920px,100%);padding:20px;position:relative}
-.close{position:absolute;top:12px;right:14px;background:none;border:none;
-  color:var(--ink-dim);font-size:24px;cursor:pointer;line-height:1;padding:4px}
+  box-shadow:var(--shadow);width:min(920px,100%);padding:20px;position:relative;
+  max-height:100%;overflow-y:auto;overscroll-behavior:contain}
+/* Title strip, sticky inside that scroll container. An absolutely positioned
+   close button scrolls off the top of a long detail panel, and a phone has no
+   Escape key to fall back on; a bare sticky button instead ends up hovering
+   over the metric cards and hiding the values underneath it. A full-width
+   opaque strip reserves its own space, and keeps the currency named while you
+   scroll through nineteen gates.
+
+   The three offsets below are one number — the modal's own padding — spelled
+   three ways. Sticky pins below the scroll container's padding, so a plain
+   `top:0` leaves that padding's worth of scrolled content showing as a strip
+   above the title. The negative `top` pins it flush to the border instead,
+   the matching padding paints over the gap, and the negative margin cancels
+   the whole thing at rest so the title sits where it looks like it should.
+   Every breakpoint that changes `.modal` padding has to restate all three. */
+.mhead{position:sticky;top:-20px;z-index:4;background:var(--bg);
+  display:flex;align-items:center;gap:12px;
+  padding:20px 0 9px;margin-top:-20px;
+  border-bottom:1px solid var(--line-soft)}
+.mhead>div{flex:1;min-width:0}
+.close{flex:none;background:none;border:none;
+  color:var(--ink-dim);font-size:24px;cursor:pointer;line-height:1;padding:4px;
+  margin:-2px -6px 0 0}
 .mgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
   gap:14px;margin-top:16px}
 .card{border:1px solid var(--line);border-radius:9px;padding:11px;
@@ -185,6 +219,7 @@ footer code{font-family:var(--mono);font-size:11px}
   header{padding:10px 12px}
   h1{font-size:15px}
   .modal{padding:14px}
+  .mhead{top:-14px;padding-top:14px;margin-top:-14px}
 }
 
 /* Touch devices. `hover: none` is the honest test — a small window on a
@@ -198,7 +233,10 @@ footer code{font-family:var(--mono);font-size:11px}
   /* Apple's minimum comfortable tap target is 44px. */
   .btn{padding:11px 14px;font-size:14px}
   .chip{padding:10px 14px;font-size:13px}
-  .close{font-size:30px;padding:10px}
+  /* 26 + 9 + 9 = 44 exactly. The close button now sets the height of the
+     modal's title strip, and on a landscape phone that strip is competing
+     with the panel for a 331px-tall screen — so hit the target, not more. */
+  .close{font-size:26px;padding:9px}
   /* Rows are the primary tap target on mobile. */
   tbody td{padding:11px 9px}
   /* Without hover there is nothing to reveal a tooltip, so mark the targets
@@ -222,11 +260,16 @@ footer code{font-family:var(--mono);font-size:11px}
   tbody tr:hover td:first-child{background:var(--line-soft)}
 }
 
-/* Short landscape phones: the modal must not overflow off-screen. */
+/* Short landscape phones: the modal must not overflow off-screen. Vertical
+   space is what is scarce here — the title strip and the gaps between cards
+   cost the same on a 331px-tall screen as on a 900px one, so they shrink. */
 @media(max-height:520px){
   .mask{padding:8px}
   .modal{padding:12px}
   .spark svg{height:80px}
+  .mgrid{gap:10px;margin-top:12px}
+  .mhead{top:-12px;padding:12px 0 6px;margin-top:-12px}
+  .mhead h2{font-size:17px}
 }
 </style>
 </head>
@@ -373,6 +416,10 @@ function showTip(el){
 function hideTip(){
   _TIP.classList.remove('on'); _TIP.setAttribute('aria-hidden','true');
 }
+function _inModal(el){
+  while(el&&el!==document){ if(el.id==='modal')return true; el=el.parentNode; }
+  return false;
+}
 function _tipTarget(e){
   var el=e.target;
   while(el&&el!==document){ if(el.getAttribute&&el.getAttribute('data-tip'))return el;
@@ -411,8 +458,14 @@ if(!COARSE){
     // tooltip that the resulting focus change immediately hides.
     var txt=el.getAttribute('data-tip'),
         ttl=el.getAttribute('data-tip-title'),
-        box=_boxOf(el);
+        box=_boxOf(el),
+        inModal=_inModal(el);
     setTimeout(function(){
+      // The same tap can open the detail panel — a row tap usually lands on
+      // the rating pill, which carries a tooltip. Drawing it now would leave
+      // it floating over the panel, and its geometry describes a row that is
+      // no longer visible.
+      if(!inModal&&_MASK.classList.contains('open'))return;
       showTipData(txt,ttl,box);
       _TIPT=setTimeout(hideTip,5000);
     },0);
@@ -732,11 +785,67 @@ function sparkSVG(spark){
     '<span class="dim">'+esc(last[0])+'</span></div>';
 }
 
+/* ------------------------------------------------------- modal viewport */
+/* Two iOS problems, one fix each.
+
+   Size: a fixed overlay at `height:100%` is measured against the layout
+   viewport, which does not shrink when the address bar is showing. The
+   overlay ends above the bottom of the screen and the table is visible below
+   it. `visualViewport.height` is the only measurement that follows the bar,
+   so read it on open and again whenever it changes.
+
+   Scroll: nothing stops the page behind the overlay from scrolling on touch,
+   so a drag inside the popup moves the table underneath it and — worse —
+   collapses the address bar mid-gesture, resizing the overlay while the
+   finger is still down. Pinning the body is the only reliable lock on iOS:
+   `overflow:hidden` alone is ignored there. The scroll offset moves onto
+   `top` so the page does not jump, and is restored on close. */
+var _MASK=document.getElementById('mask'),_lockY=0,_locked=false;
+
+function sizeMask(){
+  if(!_MASK.classList.contains('open'))return;
+  var vv=window.visualViewport;
+  /* Skip while pinch-zoomed: the visual viewport is then a crop of the page
+     rather than the screen, and matching it would shrink the popup. */
+  _MASK.style.height=(vv&&vv.scale<=1.01)?vv.height+'px':'';
+}
+function lockBody(){
+  if(_locked)return;
+  _lockY=window.pageYOffset||document.documentElement.scrollTop||0;
+  /* Desktop only: pinning the body removes a classic scrollbar and the page
+     underneath widens by its width. iOS overlay scrollbars measure 0 here. */
+  var sw=window.innerWidth-document.documentElement.clientWidth;
+  var b=document.body.style;
+  b.position='fixed';b.top=(-_lockY)+'px';b.left='0';b.right='0';
+  b.width='100%';b.overflow='hidden';
+  if(sw>0)b.paddingRight=sw+'px';
+  _locked=true;
+}
+function unlockBody(){
+  if(!_locked)return;
+  var b=document.body.style;
+  b.position='';b.top='';b.left='';b.right='';b.width='';b.overflow='';
+  b.paddingRight='';
+  _locked=false;
+  window.scrollTo(0,_lockY);
+}
+if(window.visualViewport){
+  visualViewport.addEventListener('resize',sizeMask);
+  visualViewport.addEventListener('scroll',sizeMask);
+}
+addEventListener('resize',sizeMask);
+/* Safari reports the pre-rotation viewport for several frames after the
+   event fires, so one measurement at rotation time is the old one. */
+addEventListener('orientationchange',function(){
+  sizeMask();setTimeout(sizeMask,150);setTimeout(sizeMask,500);
+});
+
 function openDetail(code){
   var r=BY_CODE[code];if(!r)return;
-  var h='<button class="close" id="x">&times;</button>'+
-    '<h2>'+esc(r.code)+' &middot; '+esc(r.name)+'</h2>'+
-    '<p class="sub" style="margin:5px 0 0">'+
+  var h='<div class="mhead"><div>'+
+    '<h2>'+esc(r.code)+' &middot; '+esc(r.name)+'</h2></div>'+
+    '<button class="close" id="x" aria-label="Close">&times;</button></div>'+
+    '<p class="sub" style="margin:9px 0 0">'+
       '<span class="pill '+ratingCls(r.rating)+'">'+esc(r.rating)+'</span> '+
       '&nbsp;<span'+tipAttr(GM.ui.composite,'Composite')+'>composite <b class="num">'+
       (isNum(r._composite_score)?r._composite_score.toFixed(1):'n/a')+'</b></span>'+
@@ -798,11 +907,25 @@ function openDetail(code){
   h+='<p class="sub" style="margin-top:14px">Grey values are not applicable: '+
      'either the data is missing, or the gate cannot describe this currency.</p>';
 
-  document.getElementById('modal').innerHTML=h;
-  document.getElementById('mask').classList.add('open');
+  var m=document.getElementById('modal');
+  m.innerHTML=h;
+  lockBody();
+  _MASK.classList.add('open');
+  sizeMask();
+  m.scrollTop=0;
+  /* A tap on a row often lands on the rating pill, which carries a tooltip.
+     The tooltip sits above the overlay and would otherwise hang over the
+     panel that same tap just opened. */
+  clearTimeout(_TIPT);hideTip();
   document.getElementById('x').onclick=closeDetail;
 }
-function closeDetail(){document.getElementById('mask').classList.remove('open');}
+function closeDetail(){
+  if(!_MASK.classList.contains('open'))return;
+  _MASK.classList.remove('open');
+  _MASK.style.height='';
+  unlockBody();
+  clearTimeout(_TIPT);hideTip();
+}
 
 /* ------------------------------------------------------------------ views */
 function showView(v){
