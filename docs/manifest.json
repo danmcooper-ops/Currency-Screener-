@@ -1,0 +1,16 @@
+{
+ "run_date": "2026-08-25",
+ "staged_at": "2026-08-25T20:46:47+00:00",
+ "report": "index.html",
+ "results": "results.json",
+ "count": 30,
+ "provenance": {
+  "schema_version": 1,
+  "run_date": "2026-08-25",
+  "generated_at": "2026-08-25T20:46:47+00:00",
+  "python": "3.11.16",
+  "currencies": 30,
+  "stale_slots": 0,
+  "event_counts": {}
+ }
+}
