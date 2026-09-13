@@ -14,19 +14,15 @@ name: Build and publish currency screener
 
 on:
   schedule:
-    # Target: 16:15 America/New_York, weekdays.
+    # 16:15 America/New_York, weekdays. GitHub applies DST itself when a
+    # timezone is set, so one entry covers the whole year.
     #
-    # Cron here is fixed-UTC, and 16:15 New York is 20:15 UTC under EDT but
-    # 21:15 UTC under EST. Both are registered; scripts/should_build.py
-    # discards any run starting before 16:00 local, and any run after one
-    # has already published today, so neither cron needs editing at the DST
-    # boundaries. GitHub often starts these hours late — the gate tolerates
-    # that rather than dropping late runs.
-    #
-    # Day-of-week is evaluated in UTC, but at 20-21 UTC the New York date is
-    # the same calendar day, so 1-5 really does mean Mon-Fri locally.
-    - cron: '15 20 * * 1-5'   # 16:15 EDT
-    - cron: '15 21 * * 1-5'   # 16:15 EST
+    # scripts/should_build.py still gates the run: GitHub often starts
+    # scheduled runs hours late, so it proceeds any time at or after 16:00
+    # local, skips if the site was already published today (e.g. by a
+    # manual or push-triggered run), and skips days with no fresh ECB data.
+    - cron: '15 16 * * 1-5'
+      timezone: 'America/New_York'
   workflow_dispatch:
   push:
     # The github-pages environment only accepts deployments from the
