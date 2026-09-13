@@ -61,9 +61,9 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: '3.11'
 
@@ -72,7 +72,7 @@ jobs:
       # good response instead of emptying the External pillar — the same
       # stale-serve path the clients use locally.
       - name: Restore API cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: data/cache
           key: api-cache-${{ github.run_id }}
@@ -130,19 +130,22 @@ jobs:
       # build — the report is still built and mirrored below.
       - id: pages
         if: steps.gate.outputs.proceed == 'true'
-        uses: actions/configure-pages@v5
+        uses: actions/configure-pages@v6
         continue-on-error: true
         with:
           enablement: true
 
+      # v4+ drops dotfiles by default; keep .nojekyll so the artifact matches
+      # the pages-live mirror exactly.
       - if: steps.gate.outputs.proceed == 'true' && steps.pages.outcome == 'success'
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v5
         with:
           path: docs
+          include-hidden-files: true
 
       - id: deployment
         if: steps.gate.outputs.proceed == 'true' && steps.pages.outcome == 'success'
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
 
       # Two distinct causes land here and the fix differs, so name both:
       # Pages never enabled at all, or enabled with Source set to "Deploy from
