@@ -48,7 +48,7 @@ def test_proceeds_at_the_target_hour_with_todays_rates(run):
 
 
 def test_skips_before_the_target_hour(run):
-    """The EST-side cron lands at 15:15 under EDT."""
+    """A manual --hour gate run early in the day must not build."""
     out = run(local_hour=15)
     assert 'proceed=false' in out
     assert 'before 16:00' in out
@@ -69,7 +69,7 @@ def _hour_argv(last_built):
 
 
 def test_skips_when_already_built_today(run):
-    """Under EDT both crons pass the hour floor; only the first may build."""
+    """A manual or push build earlier today already published."""
     today_1615 = datetime.now(NY).replace(hour=16, minute=15)
     out = run(local_hour=18, argv=_hour_argv(str(int(today_1615.timestamp()))))
     assert 'proceed=false' in out

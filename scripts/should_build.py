@@ -8,23 +8,19 @@ the job — a deliberate skip is not an error and should not show a red X.
 
 Three independent checks.
 
-**Local hour.** GitHub cron is fixed-UTC, but 16:15 America/New_York is
-20:15 UTC under EDT and 21:15 UTC under EST. The workflow therefore registers
-both crons and this check discards any run that starts before 16:00 local —
-under EST that is the 20:15 UTC cron, which lands at 15:15.
+**Local hour.** The workflow's schedule fires at 16:15 America/New_York, but
+GitHub routinely starts scheduled runs late — on this repository by two or
+more hours. The hour is therefore a floor, not a window: any run at or after
+16:00 local proceeds. An earlier version required the run to land *inside*
+the 16:00 hour, so from 2026-08-26 every run was discarded as late and the
+site silently stopped updating while every run showed green.
 
-The hour is a floor, not a window. GitHub routinely starts scheduled runs
-late, and on this repository the delay grew from ~30 minutes to two or more
-hours. An earlier version required the run to land *inside* the 16:00 hour,
-so from 2026-08-26 every run was discarded as late and the site silently
-stopped updating while every run showed green.
-
-**Already built today.** Once both crons can pass the hour check (always,
-under EDT), both would build. `--last-built` takes the Unix timestamp of the
-last publish — the workflow reads it from the `pages-live` commit — and the
-run is skipped if that falls on today's local date. A missing or unreadable
-timestamp does not gate: a duplicate build republishes identical output,
-while a wrong skip loses the day.
+**Already built today.** `--last-built` takes the Unix timestamp of the last
+publish — the workflow reads it from the `pages-live` commit — and the run is
+skipped if that falls on today's local date, so a scheduled run does not
+repeat a manual or push-triggered build from earlier the same day. A missing
+or unreadable timestamp does not gate: a duplicate build republishes
+identical output, while a wrong skip loses the day.
 
 **Fresh ECB data.** The model's spine is the ECB daily reference rate series,
 which is not published on TARGET holidays. Rather than maintain a holiday

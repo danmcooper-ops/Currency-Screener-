@@ -170,17 +170,15 @@ straight to GitHub Pages via `actions/deploy-pages`. The artifacts are
 gitignored — the report is regenerated in full every run, so versioning it on
 `main` would grow the repository without ever producing a useful diff.
 
-Two scheduling problems are handled by `scripts/should_build.py` rather than by
-cron, which can express neither:
+The schedule is a single cron with `timezone: America/New_York`, so GitHub
+handles daylight saving. Two problems cron cannot express are handled by
+`scripts/should_build.py`:
 
-**Daylight saving.** 16:15 New York is 20:15 UTC under EDT and 21:15 UTC under
-EST, and GitHub cron is fixed-UTC. Both crons are registered and the gate
-discards any run that starts before 16:00 local, or after the site has already
-been published that day (read from the `pages-live` commit time), so exactly
-one builds in either half of the year with no seasonal editing. The hour is a
-floor rather than a window because GitHub often starts scheduled runs hours
-late; requiring the 16:00 hour exactly silently stopped every build from
-2026-08-26.
+**Late starts.** GitHub often starts scheduled runs hours late. The gate
+treats 16:00 local as a floor rather than a window — requiring the 16:00 hour
+exactly silently stopped every build from 2026-08-26 — and skips if the site
+was already published that day (read from the `pages-live` commit time), so a
+scheduled run does not repeat an earlier manual or push-triggered build.
 
 **Bank holidays.** Instead of a hard-coded calendar — which would need annual
 maintenance and would encode one country's answer to a question about global
