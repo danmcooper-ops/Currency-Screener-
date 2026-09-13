@@ -175,8 +175,12 @@ cron, which can express neither:
 
 **Daylight saving.** 16:15 New York is 20:15 UTC under EDT and 21:15 UTC under
 EST, and GitHub cron is fixed-UTC. Both crons are registered and the gate
-discards whichever is not currently the 16:00 local hour, so exactly one
-survives in either half of the year with no seasonal editing.
+discards any run that starts before 16:00 local, or after the site has already
+been published that day (read from the `pages-live` commit time), so exactly
+one builds in either half of the year with no seasonal editing. The hour is a
+floor rather than a window because GitHub often starts scheduled runs hours
+late; requiring the 16:00 hour exactly silently stopped every build from
+2026-08-26.
 
 **Bank holidays.** Instead of a hard-coded calendar — which would need annual
 maintenance and would encode one country's answer to a question about global
@@ -193,7 +197,8 @@ identical to the one that would have happened.
 The same job also force-pushes a single-commit `pages-live` branch holding
 `docs/`. That is **a fallback, not the mechanism**: it lets Pages serve the
 site through Settings → Pages → "Deploy from a branch" (`pages-live` / `docs`)
-with no Actions run at all. Nothing in the workflow depends on it.
+with no Actions run at all. The only thing the workflow reads from it is its
+commit time, for the once-a-day check above.
 
 > An earlier version split this across two workflows, with `deploy-pages.yml`
 > triggering on pushes to `pages-live`. That could never have fired:

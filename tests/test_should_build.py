@@ -47,11 +47,45 @@ def test_proceeds_at_the_target_hour_with_todays_rates(run):
     assert 'proceed=true' in run(local_hour=16, ecb_offset_days=0)
 
 
-def test_skips_outside_the_target_hour(run):
-    """The wrong-DST cron lands here — one of the two always does."""
+def test_skips_before_the_target_hour(run):
+    """The EST-side cron lands at 15:15 under EDT."""
     out = run(local_hour=15)
     assert 'proceed=false' in out
-    assert 'not the 16:00 hour' in out
+    assert 'before 16:00' in out
+
+
+@pytest.mark.parametrize('local_hour', [17, 18, 19, 23])
+def test_proceeds_when_the_cron_starts_late(run, local_hour):
+    """GitHub delays scheduled runs by hours; a late run must still build.
+
+    Requiring the exact 16:00 hour dropped every run from 2026-08-26 on.
+    """
+    assert 'proceed=true' in run(local_hour=local_hour, ecb_offset_days=0)
+
+
+def _hour_argv(last_built):
+    return ['--tz', 'America/New_York', '--hour', '16',
+            '--last-built', last_built]
+
+
+def test_skips_when_already_built_today(run):
+    """Under EDT both crons pass the hour floor; only the first may build."""
+    today_1615 = datetime.now(NY).replace(hour=16, minute=15)
+    out = run(local_hour=18, argv=_hour_argv(str(int(today_1615.timestamp()))))
+    assert 'proceed=false' in out
+    assert 'already built today' in out
+
+
+def test_proceeds_when_last_build_was_yesterday(run):
+    yesterday = datetime.now(NY).replace(hour=16, minute=15) - timedelta(days=1)
+    out = run(local_hour=16, argv=_hour_argv(str(int(yesterday.timestamp()))))
+    assert 'proceed=true' in out
+
+
+@pytest.mark.parametrize('last_built', ['', 'not-a-number'])
+def test_unreadable_last_built_does_not_gate(run, last_built):
+    """No pages-live branch yet, or a failed fetch: build rather than skip."""
+    assert 'proceed=true' in run(local_hour=16, argv=_hour_argv(last_built))
 
 
 def test_skips_when_ecb_published_nothing_today(run):
