@@ -18,9 +18,10 @@ on:
     #
     # Cron here is fixed-UTC, and 16:15 New York is 20:15 UTC under EDT but
     # 21:15 UTC under EST. Both are registered; scripts/should_build.py
-    # discards whichever one is not actually the 16:00 local hour, so exactly
-    # one survives on any given day and neither cron needs editing at the DST
-    # boundaries.
+    # discards any run starting before 16:00 local, and any run after one
+    # has already published today, so neither cron needs editing at the DST
+    # boundaries. GitHub often starts these hours late — the gate tolerates
+    # that rather than dropping late runs.
     #
     # Day-of-week is evaluated in UTC, but at 20-21 UTC the New York date is
     # the same calendar day, so 1-5 really does mean Mon-Fri locally.
@@ -85,7 +86,13 @@ jobs:
         name: Should this run build?
         run: |
           if [ "${{ github.event_name }}" = "schedule" ]; then
-            python scripts/should_build.py --tz America/New_York --hour 16
+            # Last publish time from the pages-live mirror. Empty if the
+            # branch does not exist or the fetch fails, which the gate
+            # treats as "not built today".
+            last_built="$(git fetch --quiet --depth=1 origin pages-live 2>/dev/null \
+              && git log -1 --format=%ct FETCH_HEAD || true)"
+            python scripts/should_build.py --tz America/New_York --hour 16 \
+              --last-built "$last_built"
           else
             echo "proceed=true" >> "$GITHUB_OUTPUT"
             echo "reason=${{ github.event_name }} trigger — always builds" >> "$GITHUB_OUTPUT"
