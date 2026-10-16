@@ -78,10 +78,18 @@ jobs:
           key: api-cache-${{ github.run_id }}
           restore-keys: api-cache-
 
-      # Scheduled runs only: drop the wrong-DST cron, and skip days the ECB
-      # published nothing (TARGET holiday, weekend, or an outage). Manual and
-      # push-triggered runs always build. A skip is not a failure, so this
-      # gates the later steps rather than exiting non-zero.
+      # Scheduled runs: drop the wrong-DST cron, skip a day already
+      # published, and skip days the ECB published nothing (TARGET holiday,
+      # weekend, or an outage). A skip is not a failure, so this gates the
+      # later steps rather than exiting non-zero.
+      #
+      # Pushes get the ECB check alone. An unconditional push build on a
+      # morning before the ECB publishes (~16:00 CET) stamps yesterday's
+      # rates with today's date, and the pages-live commit it leaves then
+      # makes the evening cron skip as "already built today" — so the day's
+      # real data never ships (2026-10-16). Skipped, the change ships with
+      # the evening build instead. Manual runs always build: that is the
+      # override for deploying a change on a day with no fresh rates.
       - id: gate
         name: Should this run build?
         run: |
@@ -93,6 +101,8 @@ jobs:
               && git log -1 --format=%ct FETCH_HEAD || true)"
             python scripts/should_build.py --tz America/New_York --hour 16 \
               --last-built "$last_built"
+          elif [ "${{ github.event_name }}" = "push" ]; then
+            python scripts/should_build.py --tz America/New_York
           else
             echo "proceed=true" >> "$GITHUB_OUTPUT"
             echo "reason=${{ github.event_name }} trigger — always builds" >> "$GITHUB_OUTPUT"

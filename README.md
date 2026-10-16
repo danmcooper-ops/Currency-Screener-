@@ -193,6 +193,14 @@ That covers TARGET holidays, weekends and outages with one rule, and it fails
 in the safe direction: rebuilding on a stale day would republish yesterday's
 rates stamped with today's date.
 
+Pushes that touch the model go through the same ECB check (but not the time
+or once-a-day checks). A push on a morning before the ECB publishes would
+otherwise stamp yesterday's rates with today's date, and the publish it leaves
+on `pages-live` makes the evening build skip as already built — so the day's
+real rates never ship. Skipped, the change goes out with the evening build. A
+manual run (**Run workflow** in the Actions tab) always builds; use it to
+deploy a change on a day with no fresh rates.
+
 A skipped run is a green run with a notice, not a failure. Missing a day costs
 nothing — every build regenerates from full history, so the next run is
 identical to the one that would have happened.
