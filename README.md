@@ -234,6 +234,14 @@ site as a 404. Everything the check keeps lives in one Finder-visible folder,
 `report.md` and `status.json`, and `logs/`. Yesterday is therefore always on
 disk for the day-over-day rating diff.
 
+After each check, `scripts/archive_snapshots.py` pushes that history to the
+`data/snapshots` branch as `<date>/results.json` and `<date>/manifest.json`,
+one `Snapshot: <date>` commit per run. It is the long-term archive: days the
+Mac prunes after 400 days stay on the branch, and a lost or replaced Mac
+loses nothing. The commit is built with git plumbing on a private index, so
+the checkout is never touched, and an unchanged history makes no commit. It
+pushes with the Mac's existing GitHub credentials (`gh auth login`).
+
 Mac setup: clone to `~/Projects/Currency-Screener-` (off iCloud) with a
 Python ≥ 3.11 installed; there are no dependencies to install. Dry run with
 `scheduled-tasks/daily-check/mac_run.sh --wait-min 0`, then create the app

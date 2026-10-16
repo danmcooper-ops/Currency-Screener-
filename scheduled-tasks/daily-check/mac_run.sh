@@ -19,6 +19,9 @@
 #     run after the move migrates the old ~/Library locations into it.
 #   - a lock, so the app task, a retry and a manual run never overlap.
 #
+# Afterwards it runs scripts/archive_snapshots.py, which pushes history/ to
+# the data/snapshots branch so the day-by-day record is not only on this Mac.
+#
 # Usage:  scheduled-tasks/daily-check/mac_run.sh [check_site.py args]
 #         e.g. --wait-min 0 to check once without waiting.
 set -uo pipefail
@@ -99,11 +102,21 @@ trap 'rm -f "$LOCK"' EXIT
 LOG="$LOGDIR/check_$(date +%F).log"
 echo "mac_run: python $PY3, home $CURRENCY_CHECK_HOME, log $LOG"
 
-# Read-only on the checkout: refresh the remote refs (the first run seeds its
+# The checkout is left alone: refresh the remote refs (the first run seeds its
 # history from origin/pages-live) but never pull or touch the working tree.
 git -C "$REPO" fetch --quiet origin pages-live >>"$LOG" 2>&1 || echo "mac_run: git fetch failed (non-fatal)" >>"$LOG"
 
 "$PY3" "$REPO/scripts/check_site.py" "$@" 2>&1 | tee -a "$LOG"
 rc=${PIPESTATUS[0]}
 echo "mac_run: check_site exited $rc; report $CURRENCY_CHECK_HOME/report.md"
+
+# Mirror history/ to the data/snapshots branch, the only copy off this Mac.
+# Its own commit via git plumbing; the checkout is still never touched. A
+# failed push is reported in report.md but does not change the check's result.
+archive_out="$("$PY3" "$REPO/scripts/archive_snapshots.py" 2>&1)"
+arc=$?
+echo "$archive_out" | tee -a "$LOG"
+{ printf '\n## Archive\n'; echo "$archive_out" | sed 's/^archive: /- /'; } \
+  >> "$CURRENCY_CHECK_HOME/report.md"
+[ "$arc" -eq 0 ] || echo "mac_run: archive_snapshots exited $arc" | tee -a "$LOG"
 exit "$rc"
