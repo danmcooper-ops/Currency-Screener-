@@ -23,8 +23,9 @@ as `from data import ...` / `from models import ...`.
   imports from `data/` except `currency_meta`.
 - **`scripts/`** — `scoring.py` is the core; everything else orchestrates,
   renders or analyses. `check_site.py` is the post-deploy check the Mac mini
-  runs after Actions publishes (`scheduled-tasks/daily-check/`; README,
-  "The daily check").
+  runs after Actions publishes, and `archive_snapshots.py` pushes its
+  history to the `data/snapshots` branch (`scheduled-tasks/daily-check/`;
+  README, "The daily check").
 - **Publishing** is GitHub Actions only (`build.yml`); the github-pages
   environment refuses deploys from anywhere else. The site URL follows the
   repository name — it moved when the repo was renamed from
@@ -83,7 +84,7 @@ denominator. If you add an `applicable` predicate, it must tolerate a bare
 ## Testing
 
 ```bash
-python -m pytest -q          # 147 offline tests, no network, <1s
+python -m pytest -q          # 154 offline tests, no network, <1s
 python -m pytest -m live -q  # 10 tests against real endpoints
 ```
 

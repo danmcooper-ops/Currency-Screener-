@@ -16,8 +16,11 @@ launch it, wait, and write the summary from its report.
 
 ## Execution mode
 - **Fully autonomous.** Nobody is watching. Never pause for confirmation.
-- **Read-only.** Never rebuild, publish, commit or push, and never change
-  gates, weights or thresholds. The site can only be deployed by Actions on
+- **Read-only, with one exception.** Never rebuild, publish, commit or
+  push, and never change gates, weights or thresholds. The only outward
+  action is the `Snapshot: <date>` commit to the `data/snapshots` branch that
+  `mac_run.sh` makes itself (via `scripts/archive_snapshots.py`); do not
+  make or retry it by hand. The site can only be deployed by Actions on
   the default branch, so a manual rebuild here would not reach it anyway.
 
 ## Where things are
@@ -76,3 +79,7 @@ Concise, leading with what changed:
 - Any data-quality lines (stale cache slots, provenance events, an
   unusually sized page).
 - One line confirming the live site: its size and run date.
+- One line from the report's **Archive** section: the `data/snapshots`
+  commit, "already holds every day", or the push failure verbatim. A failed
+  push does not change the result, but say it plainly: until the next
+  successful run, the new day exists only on this Mac.
