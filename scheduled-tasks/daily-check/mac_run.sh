@@ -46,7 +46,7 @@ migrate() {  # migrate SRC_DIR DEST_DIR: move each entry DEST does not have
     [ -e "$dest/$(basename "$e")" ] || mv "$e" "$dest/"
   done
 }
-if [ -d "$OLD_HOME" ] || [ -d "$OLD_LOGDIR" ]; then
+if { [ -d "$OLD_HOME" ] && [ ! -L "$OLD_HOME" ]; } || { [ -d "$OLD_LOGDIR" ] && [ ! -L "$OLD_LOGDIR" ]; }; then
   migrate "$OLD_HOME/history" "$CURRENCY_CHECK_HOME/history"
   rmdir "$OLD_HOME/history" 2>/dev/null
   migrate "$OLD_HOME" "$CURRENCY_CHECK_HOME"
@@ -54,8 +54,17 @@ if [ -d "$OLD_HOME" ] || [ -d "$OLD_LOGDIR" ]; then
   rmdir "$OLD_HOME" "$(dirname "$OLD_HOME")" "$OLD_LOGDIR" 2>/dev/null
   echo "mac_run: migrated old ~/Library check files into $CURRENCY_CHECK_HOME"
   for d in "$OLD_HOME" "$OLD_LOGDIR"; do
-    [ -d "$d" ] && echo "mac_run: left in $d (same name already in the new folder):" $(ls -A "$d")
+    [ -d "$d" ] && [ ! -L "$d" ] && echo "mac_run: left in $d (same name already in the new folder):" $(ls -A "$d")
   done
+fi
+# Leave links at the old paths so a prompt or habit that still reads them
+# (the desktop app task's prompt named them) finds the same single folder.
+# Only where the old path is now free; a leftover real directory is kept.
+if [ ! -e "$OLD_HOME" ] && [ ! -L "$OLD_HOME" ]; then
+  mkdir -p "$(dirname "$OLD_HOME")" && ln -s "$CURRENCY_CHECK_HOME" "$OLD_HOME"
+fi
+if [ ! -e "$OLD_LOGDIR" ] && [ ! -L "$OLD_LOGDIR" ]; then
+  mkdir -p "$(dirname "$OLD_LOGDIR")" && ln -s "$LOGDIR" "$OLD_LOGDIR"
 fi
 
 pick_python() {

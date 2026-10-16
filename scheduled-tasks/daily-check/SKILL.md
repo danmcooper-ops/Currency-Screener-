@@ -29,7 +29,8 @@ launch it, wait, and write the summary from its report.
 - Log: `~/CurrencyScreener/logs/check_<date>.log`
 - Older runs used `~/Library/Application Support/CurrencyScreener/check` and
   `~/Library/Logs/CurrencyScreener`; `mac_run.sh` moves anything left there
-  into `~/CurrencyScreener` on its next run.
+  into `~/CurrencyScreener` on its next run and leaves symlinks at the old
+  paths, so they still resolve to the same single folder.
 
 ## Step 1 — Run the check
 Run this as a Bash call **in the background** (run_in_background), and wait
