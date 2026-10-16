@@ -22,7 +22,13 @@ as `from data import ...` / `from models import ...`.
 - **`models/`** — pure functions over `(period, value)` series. No I/O, no
   imports from `data/` except `currency_meta`.
 - **`scripts/`** — `scoring.py` is the core; everything else orchestrates,
-  renders or analyses.
+  renders or analyses. `check_site.py` is the post-deploy check the Mac mini
+  runs after Actions publishes (`scheduled-tasks/daily-check/`; README,
+  "The daily check").
+- **Publishing** is GitHub Actions only (`build.yml`); the github-pages
+  environment refuses deploys from anywhere else. The site URL follows the
+  repository name — it moved when the repo was renamed from
+  `Currency-Arbitrage-`, and GitHub does not redirect Pages.
 
 ## Conventions that matter
 
@@ -77,8 +83,8 @@ denominator. If you add an `applicable` predicate, it must tolerate a bare
 ## Testing
 
 ```bash
-python -m pytest -q          # 95 offline tests, no network, <1s
-python -m pytest -m live -q  # 8 tests against real endpoints
+python -m pytest -q          # 147 offline tests, no network, <1s
+python -m pytest -m live -q  # 10 tests against real endpoints
 ```
 
 Offline tests build their own payloads. Anything needing the network goes in
@@ -96,7 +102,8 @@ every valuation range in `GATES` runs high→low.
 
 ## Iteration loop
 
-`analyze_currencies.py` is the only script that touches the network. For gate
+`analyze_currencies.py` is the only script that fetches model data (the
+build gate and `check_site.py` only ask whether the ECB published). For gate
 and weight work, run it once and then iterate with
 `rescore_and_render.py output/results_<date>.json` — under a second, no API
 calls, rewrites both the JSON and the HTML.
