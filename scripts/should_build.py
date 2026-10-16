@@ -102,24 +102,33 @@ def main(argv=None):
     if args.skip_freshness:
         return emit(True, 'freshness check disabled')
 
+    proceed, reason = ecb_freshness(now.date().isoformat())
+    return emit(proceed, reason)
+
+
+def ecb_freshness(today):
+    """(proceed, reason): did the ECB publish reference rates dated `today`?
+
+    Shared with scripts/check_site.py, which asks the same question to tell a
+    correctly skipped day from a build that should have landed and did not.
+    """
     per_eur = ecb_client.fetch_reference_rates(ttl_days=0.0)
     if not per_eur:
         # Distinct from a holiday: the source is unreachable. Skipping is
         # still right — there is nothing new to publish either way.
-        return emit(False, 'ECB reference rates unavailable')
+        return False, 'ECB reference rates unavailable'
 
     usd = per_eur.get('USD') or {}
     if not usd:
-        return emit(False, 'ECB responded without a USD series')
+        return False, 'ECB responded without a USD series'
 
     latest = max(usd)
-    today = now.date().isoformat()
     if latest != today:
-        return emit(False, 'newest ECB observation is %s, not %s '
-                           '(TARGET holiday, weekend, or not yet published)'
-                    % (latest, today))
+        return False, ('newest ECB observation is %s, not %s '
+                       '(TARGET holiday, weekend, or not yet published)'
+                       % (latest, today))
 
-    return emit(True, 'ECB published %s; building' % latest)
+    return True, 'ECB published %s; building' % latest
 
 
 if __name__ == '__main__':

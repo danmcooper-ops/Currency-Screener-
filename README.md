@@ -130,16 +130,19 @@ models/     valuation, carry, momentum, external, stability, series
             — pure functions, no I/O
 scripts/    config (weights/thresholds), scoring (the GATES list),
             analyze_currencies (orchestrator), report_html, rescore_and_render,
-            backtest, publish_pages
+            backtest, publish_pages, should_build (the build gate),
+            check_site (the post-deploy check)
+scheduled-tasks/daily-check/  the Mac mini's post-deploy check (runbook +
+            wrapper)
 templates/  report.html + world_svg.js (Natural Earth 110m, public domain)
-tests/      95 offline tests + 8 live endpoint tests
+tests/      147 offline tests + 10 live endpoint tests
 ```
 
 ## Working on it
 
 ```bash
-python -m pytest -q                                    # 95 offline tests, <1s
-python -m pytest -m live -q                            # 8 live endpoint tests
+python -m pytest -q                                    # 147 offline tests, <1s
+python -m pytest -m live -q                            # 10 live endpoint tests
 python scripts/analyze_currencies.py                   # full run (~1 min warm)
 python scripts/analyze_currencies.py --no-macro        # skip World Bank
 python scripts/rescore_and_render.py output/results_<date>.json
@@ -211,6 +214,32 @@ tokens, and Pages starts disabled on a new repository. If the Actions tab is
 empty, enable Actions under Settings → Actions → General, then run
 **Build and publish currency screener** once from the Actions tab. After that
 the daily schedule takes over.
+
+### The daily check (Mac mini)
+
+Actions builds and deploys; a separate check confirms the build reached the
+site and reports what changed. It runs on the Mac mini from a Claude desktop
+app scheduled task (`the-daily-currency-check`, weekdays 18:55 New York)
+following `scheduled-tasks/daily-check/SKILL.md`, which launches
+`scheduled-tasks/daily-check/mac_run.sh` → `scripts/check_site.py`.
+
+The check waits (up to 110 minutes) for `manifest.json` to show today's
+date, because GitHub starts the scheduled build 2–3 hours late. If it never
+does, it says why: the ECB published nothing today (a correct skip, the same
+question `should_build.py` asks), today's run failed, or it is still late.
+It derives the site URL from the git remote — the cloud routine it replaced
+hard-coded the pre-rename `Currency-Arbitrage-` URL and reported a healthy
+site as a 404. Each day's `results.json` is archived under
+`~/Library/Application Support/CurrencyScreener/check/history/`, so the
+day-over-day rating diff always has yesterday on disk.
+
+Mac setup: clone to `~/Projects/Currency-Screener-` (off iCloud) with a
+Python ≥ 3.11 installed; there are no dependencies to install. Dry run with
+`scheduled-tasks/daily-check/mac_run.sh --wait-min 0`, then create the app
+task with the prompt "Follow scheduled-tasks/daily-check/SKILL.md in
+~/Projects/Currency-Screener-". Only after its first clean run, disable the
+cloud routine "Daily Currency Screener" (disable, not delete, so it can be
+turned back on); never run both.
 
 ## Caveats
 

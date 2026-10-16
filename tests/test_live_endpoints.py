@@ -123,3 +123,22 @@ def test_worldbank_core_indicators_are_reachable():
         h = health[field]
         assert h['covered'] >= h['total'] * 0.9, (
             '%s covered only %d/%d' % (field, h['covered'], h['total']))
+
+
+def test_published_site_has_the_shape_the_check_reads():
+    """scripts/check_site.py reads these keys from the live Pages site.
+
+    Also pins the derived URL: the site moved with the repository rename
+    (Currency-Arbitrage- -> Currency-Screener-), and a hard-coded old URL
+    is what made the cloud check report a healthy site as down.
+    """
+    from scripts import check_site as cs
+    site = cs.site_url(cs.parse_remote(cs.FALLBACK_REMOTE))
+    status, manifest = cs.get_json(site + 'manifest.json')
+    assert status == 200, 'manifest.json HTTP %s at %s' % (status, site)
+    assert manifest['run_date']
+    prov = manifest['provenance']
+    assert 'stale_slots' in prov and 'event_counts' in prov
+    _, results = cs.get_json(site + 'results.json')
+    jpy = [r for r in results['results'] if r['code'] == 'JPY'][0]
+    assert {'rating', '_composite_score', '_score_pillar_valuation'} <= set(jpy)
