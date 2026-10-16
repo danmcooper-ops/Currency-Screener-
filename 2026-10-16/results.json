@@ -4,7 +4,7 @@
  "provenance": {
   "schema_version": 1,
   "run_date": "2026-10-16",
-  "generated_at": "2026-10-16T14:17:15+00:00",
+  "generated_at": "2026-10-16T14:34:59+00:00",
   "python": "3.11.17",
   "currencies": 30,
   "stale_slots": 0,
@@ -2125,25 +2125,25 @@
    "_provenance": {
     "macro": {
      "source": "worldbank",
-     "fetched_at": "2026-10-16T14:17:15+00:00",
+     "fetched_at": "2026-10-16T14:34:59+00:00",
      "cache_hit": true,
-     "cache_age_days": 2.606,
+     "cache_age_days": 2.619,
      "stale": false,
      "indicator": "DT.DOD.DECT.GN.ZS"
     },
     "spot": {
      "source": "ecb",
-     "fetched_at": "2026-10-16T14:17:15+00:00",
+     "fetched_at": "2026-10-16T14:34:59+00:00",
      "observations": 7115
     },
     "reer": {
      "source": "bis",
-     "fetched_at": "2026-10-16T14:17:15+00:00",
+     "fetched_at": "2026-10-16T14:34:59+00:00",
      "observations": 392
     },
     "policy_rate": {
      "source": "bis",
-     "fetched_at": "2026-10-16T14:17:15+00:00"
+     "fetched_at": "2026-10-16T14:34:59+00:00"
     }
    },
    "_gate_reer_z_score": -2.526194573425772,
@@ -4333,25 +4333,25 @@
    "_provenance": {
     "macro": {
      "source": "worldbank",
-     "fetched_at": "2026-10-16T14:17:15+00:00",
+     "fetched_at": "2026-10-16T14:34:59+00:00",
      "cache_hit": true,
-     "cache_age_days": 2.606,
+     "cache_age_days": 2.619,
      "stale": false,
      "indicator": "DT.DOD.DECT.GN.ZS"
     },
     "spot": {
      "source": "ecb",
-     "fetched_at": "2026-10-16T14:17:15+00:00",
+     "fetched_at": "2026-10-16T14:34:59+00:00",
      "observations": 6848
     },
     "reer": {
      "source": "bis",
-     "fetched_at": "2026-10-16T14:17:15+00:00",
+     "fetched_at": "2026-10-16T14:34:59+00:00",
      "observations": 392
     },
     "policy_rate": {
      "source": "bis",
-     "fetched_at": "2026-10-16T14:17:15+00:00"
+     "fetched_at": "2026-10-16T14:34:59+00:00"
     }
    },
    "_gate_reer_z_score": -1.359373121560694,
@@ -6541,25 +6541,25 @@
    "_provenance": {
     "macro": {
      "source": "worldbank",
-     "fetched_at": "2026-10-16T14:17:15+00:00",
+     "fetched_at": "2026-10-16T14:34:59+00:00",
      "cache_hit": true,
-     "cache_age_days": 2.606,
+     "cache_age_days": 2.619,
      "stale": false,
      "indicator": "DT.DOD.DECT.GN.ZS"
     },
     "spot": {
      "source": "ecb",
-     "fetched_at": "2026-10-16T14:17:15+00:00",
+     "fetched_at": "2026-10-16T14:34:59+00:00",
      "observations": 6848
     },
     "reer": {
      "source": "bis",
-     "fetched_at": "2026-10-16T14:17:15+00:00",
+     "fetched_at": "2026-10-16T14:34:59+00:00",
      "observations": 392
     },
     "policy_rate": {
      "source": "bis",
-     "fetched_at": "2026-10-16T14:17:15+00:00"
+     "fetched_at": "2026-10-16T14:34:59+00:00"
     }
    },
    "_gate_reer_z_score": -0.7103018909977421,
@@ -8749,25 +8749,25 @@
    "_provenance": {
     "macro": {
      "source": "worldbank",
-     "fetched_at": "2026-10-16T14:17:15+00:00",
+     "fetched_at": "2026-10-16T14:34:59+00:00",
      "cache_hit": true,
-     "cache_age_days": 2.606,
+     "cache_age_days": 2.619,
      "stale": false,
      "indicator": "DT.DOD.DECT.GN.ZS"
     },
     "spot": {
      "source": "ecb",
-     "fetched_at": "2026-10-16T14:17:15+00:00",
+     "fetched_at": "2026-10-16T14:34:59+00:00",
      "observations": 7115
     },
     "reer": {
      "source": "bis",
-     "fetched_at": "2026-10-16T14:17:15+00:00",
+     "fetched_at": "2026-10-16T14:34:59+00:00",
      "observations": 392
     },
     "policy_rate": {
      "source": "bis",
-     "fetched_at": "2026-10-16T14:17:15+00:00"
+     "fetched_at": "2026-10-16T14:34:59+00:00"
     }
    },
    "_gate_reer_z_score": null,
@@ -10959,25 +10959,25 @@
    "_provenance": {
     "macro": {
      "source": "worldbank",
-     "fetched_at": "2026-10-16T14:17:15+00:00",
+     "fetched_at": "2026-10-16T14:34:59+00:00",
      "cache_hit": true,
-     "cache_age_days": 2.606,
+     "cache_age_days": 2.619,
      "stale": false,
      "indicator": "DT.DOD.DECT.GN.ZS"
     },
     "spot": {
      "source": "ecb",
-     "fetched_at": "2026-10-16T14:17:15+00:00",
+     "fetched_at": "2026-10-16T14:34:59+00:00",
      "observations": 6848
     },
     "reer": {
      "source": "bis",
-     "fetched_at": "2026-10-16T14:17:15+00:00",
+     "fetched_at": "2026-10-16T14:34:59+00:00",
      "observations": 392
     },
     "policy_rate": {
      "source": "bis",
-     "fetched_at": "2026-10-16T14:17:15+00:00"
+     "fetched_at": "2026-10-16T14:34:59+00:00"
     }
    },
    "_gate_reer_z_score": 0.004620242338950256,
@@ -13167,25 +13167,25 @@
    "_provenance": {
     "macro": {
      "source": "worldbank",
-     "fetched_at": "2026-10-16T14:17:15+00:00",
+     "fetched_at": "2026-10-16T14:34:59+00:00",
      "cache_hit": true,
-     "cache_age_days": 2.606,
+     "cache_age_days": 2.619,
      "stale": false,
      "indicator": "DT.DOD.DECT.GN.ZS"
     },
     "spot": {
      "source": "ecb",
-     "fetched_at": "2026-10-16T14:17:15+00:00",
+     "fetched_at": "2026-10-16T14:34:59+00:00",
      "observations": 7115
     },
     "reer": {
      "source": "bis",
-     "fetched_at": "2026-10-16T14:17:15+00:00",
+     "fetched_at": "2026-10-16T14:34:59+00:00",
      "observations": 392
     },
     "policy_rate": {
      "source": "bis",
-     "fetched_at": "2026-10-16T14:17:15+00:00"
+     "fetched_at": "2026-10-16T14:34:59+00:00"
     }
    },
    "_gate_reer_z_score": -1.09397171746086,
@@ -15375,25 +15375,25 @@
    "_provenance": {
     "macro": {
      "source": "worldbank",
-     "fetched_at": "2026-10-16T14:17:15+00:00",
+     "fetched_at": "2026-10-16T14:34:59+00:00",
      "cache_hit": true,
-     "cache_age_days": 2.606,
+     "cache_age_days": 2.619,
      "stale": false,
      "indicator": "DT.DOD.DECT.GN.ZS"
     },
     "spot": {
      "source": "ecb",
-     "fetched_at": "2026-10-16T14:17:15+00:00",
+     "fetched_at": "2026-10-16T14:34:59+00:00",
      "observations": 7115
     },
     "reer": {
      "source": "bis",
-     "fetched_at": "2026-10-16T14:17:15+00:00",
+     "fetched_at": "2026-10-16T14:34:59+00:00",
      "observations": 392
     },
     "policy_rate": {
      "source": "bis",
-     "fetched_at": "2026-10-16T14:17:15+00:00"
+     "fetched_at": "2026-10-16T14:34:59+00:00"
     }
    },
    "_gate_reer_z_score": -0.828093687226401,
@@ -17583,25 +17583,25 @@
    "_provenance": {
     "macro": {
      "source": "worldbank",
-     "fetched_at": "2026-10-16T14:17:15+00:00",
+     "fetched_at": "2026-10-16T14:34:59+00:00",
      "cache_hit": true,
-     "cache_age_days": 2.606,
+     "cache_age_days": 2.619,
      "stale": false,
      "indicator": "DT.DOD.DECT.GN.ZS"
     },
     "spot": {
      "source": "ecb",
-     "fetched_at": "2026-10-16T14:17:15+00:00",
+     "fetched_at": "2026-10-16T14:34:59+00:00",
      "observations": 7115
     },
     "reer": {
      "source": "bis",
-     "fetched_at": "2026-10-16T14:17:15+00:00",
+     "fetched_at": "2026-10-16T14:34:59+00:00",
      "observations": 392
     },
     "policy_rate": {
      "source": "bis",
-     "fetched_at": "2026-10-16T14:17:15+00:00"
+     "fetched_at": "2026-10-16T14:34:59+00:00"
     }
    },
    "_gate_reer_z_score": -1.7301376522261926,
@@ -19791,25 +19791,25 @@
    "_provenance": {
     "macro": {
      "source": "worldbank",
-     "fetched_at": "2026-10-16T14:17:15+00:00",
+     "fetched_at": "2026-10-16T14:34:59+00:00",
      "cache_hit": true,
-     "cache_age_days": 2.606,
+     "cache_age_days": 2.619,
      "stale": false,
      "indicator": "DT.DOD.DECT.GN.ZS"
     },
     "spot": {
      "source": "ecb",
-     "fetched_at": "2026-10-16T14:17:15+00:00",
+     "fetched_at": "2026-10-16T14:34:59+00:00",
      "observations": 7115
     },
     "reer": {
      "source": "bis",
-     "fetched_at": "2026-10-16T14:17:15+00:00",
+     "fetched_at": "2026-10-16T14:34:59+00:00",
      "observations": 392
     },
     "policy_rate": {
      "source": "bis",
-     "fetched_at": "2026-10-16T14:17:15+00:00"
+     "fetched_at": "2026-10-16T14:34:59+00:00"
     }
    },
    "_gate_reer_z_score": 0.04899895932369138,
@@ -21999,25 +21999,25 @@
    "_provenance": {
     "macro": {
      "source": "worldbank",
-     "fetched_at": "2026-10-16T14:17:15+00:00",
+     "fetched_at": "2026-10-16T14:34:59+00:00",
      "cache_hit": true,
-     "cache_age_days": 2.606,
+     "cache_age_days": 2.619,
      "stale": false,
      "indicator": "DT.DOD.DECT.GN.ZS"
     },
     "spot": {
      "source": "ecb",
-     "fetched_at": "2026-10-16T14:17:15+00:00",
+     "fetched_at": "2026-10-16T14:34:59+00:00",
      "observations": 7115
     },
     "reer": {
      "source": "bis",
-     "fetched_at": "2026-10-16T14:17:15+00:00",
+     "fetched_at": "2026-10-16T14:34:59+00:00",
      "observations": 392
     },
     "policy_rate": {
      "source": "bis",
-     "fetched_at": "2026-10-16T14:17:15+00:00"
+     "fetched_at": "2026-10-16T14:34:59+00:00"
     }
    },
    "_gate_reer_z_score": 0.4424803350156258,
@@ -24207,25 +24207,25 @@
    "_provenance": {
     "macro": {
      "source": "worldbank",
-     "fetched_at": "2026-10-16T14:17:15+00:00",
+     "fetched_at": "2026-10-16T14:34:59+00:00",
      "cache_hit": true,
-     "cache_age_days": 2.606,
+     "cache_age_days": 2.619,
      "stale": false,
      "indicator": "DT.DOD.DECT.GN.ZS"
     },
     "spot": {
      "source": "ecb",
-     "fetched_at": "2026-10-16T14:17:15+00:00",
+     "fetched_at": "2026-10-16T14:34:59+00:00",
      "observations": 7115
     },
     "reer": {
      "source": "bis",
-     "fetched_at": "2026-10-16T14:17:15+00:00",
+     "fetched_at": "2026-10-16T14:34:59+00:00",
      "observations": 392
     },
     "policy_rate": {
      "source": "bis",
-     "fetched_at": "2026-10-16T14:17:15+00:00"
+     "fetched_at": "2026-10-16T14:34:59+00:00"
     }
    },
    "_gate_reer_z_score": null,
@@ -26417,20 +26417,20 @@
    "_provenance": {
     "macro": {
      "source": "worldbank",
-     "fetched_at": "2026-10-16T14:17:15+00:00",
+     "fetched_at": "2026-10-16T14:34:59+00:00",
      "cache_hit": true,
-     "cache_age_days": 2.606,
+     "cache_age_days": 2.619,
      "stale": false,
      "indicator": "DT.DOD.DECT.GN.ZS"
     },
     "spot": {
      "source": "ecb",
-     "fetched_at": "2026-10-16T14:17:15+00:00",
+     "fetched_at": "2026-10-16T14:34:59+00:00",
      "observations": 7115
     },
     "reer": {
      "source": "bis",
-     "fetched_at": "2026-10-16T14:17:15+00:00",
+     "fetched_at": "2026-10-16T14:34:59+00:00",
      "observations": 392
     }
    },
@@ -28621,25 +28621,25 @@
    "_provenance": {
     "macro": {
      "source": "worldbank",
-     "fetched_at": "2026-10-16T14:17:15+00:00",
+     "fetched_at": "2026-10-16T14:34:59+00:00",
      "cache_hit": true,
-     "cache_age_days": 2.606,
+     "cache_age_days": 2.619,
      "stale": false,
      "indicator": "DT.DOD.DECT.GN.ZS"
     },
     "spot": {
      "source": "ecb",
-     "fetched_at": "2026-10-16T14:17:15+00:00",
+     "fetched_at": "2026-10-16T14:34:59+00:00",
      "observations": 7115
     },
     "reer": {
      "source": "bis",
-     "fetched_at": "2026-10-16T14:17:15+00:00",
+     "fetched_at": "2026-10-16T14:34:59+00:00",
      "observations": 392
     },
     "policy_rate": {
      "source": "bis",
-     "fetched_at": "2026-10-16T14:17:15+00:00"
+     "fetched_at": "2026-10-16T14:34:59+00:00"
     }
    },
    "_gate_reer_z_score": -0.2712741053343487,
@@ -30829,25 +30829,25 @@
    "_provenance": {
     "macro": {
      "source": "worldbank",
-     "fetched_at": "2026-10-16T14:17:15+00:00",
+     "fetched_at": "2026-10-16T14:34:59+00:00",
      "cache_hit": true,
-     "cache_age_days": 2.606,
+     "cache_age_days": 2.619,
      "stale": false,
      "indicator": "DT.DOD.DECT.GN.ZS"
     },
     "spot": {
      "source": "ecb",
-     "fetched_at": "2026-10-16T14:17:15+00:00",
+     "fetched_at": "2026-10-16T14:34:59+00:00",
      "observations": 7115
     },
     "reer": {
      "source": "bis",
-     "fetched_at": "2026-10-16T14:17:15+00:00",
+     "fetched_at": "2026-10-16T14:34:59+00:00",
      "observations": 392
     },
     "policy_rate": {
      "source": "bis",
-     "fetched_at": "2026-10-16T14:17:15+00:00"
+     "fetched_at": "2026-10-16T14:34:59+00:00"
     }
    },
    "_gate_reer_z_score": -1.251116054567646,
@@ -33037,25 +33037,25 @@
    "_provenance": {
     "macro": {
      "source": "worldbank",
-     "fetched_at": "2026-10-16T14:17:15+00:00",
+     "fetched_at": "2026-10-16T14:34:59+00:00",
      "cache_hit": true,
-     "cache_age_days": 2.606,
+     "cache_age_days": 2.619,
      "stale": false,
      "indicator": "DT.DOD.DECT.GN.ZS"
     },
     "spot": {
      "source": "ecb",
-     "fetched_at": "2026-10-16T14:17:15+00:00",
+     "fetched_at": "2026-10-16T14:34:59+00:00",
      "observations": 7115
     },
     "reer": {
      "source": "bis",
-     "fetched_at": "2026-10-16T14:17:15+00:00",
+     "fetched_at": "2026-10-16T14:34:59+00:00",
      "observations": 392
     },
     "policy_rate": {
      "source": "bis",
-     "fetched_at": "2026-10-16T14:17:15+00:00"
+     "fetched_at": "2026-10-16T14:34:59+00:00"
     }
    },
    "_gate_reer_z_score": -1.2868565089627753,
@@ -35245,25 +35245,25 @@
    "_provenance": {
     "macro": {
      "source": "worldbank",
-     "fetched_at": "2026-10-16T14:17:15+00:00",
+     "fetched_at": "2026-10-16T14:34:59+00:00",
      "cache_hit": true,
-     "cache_age_days": 2.606,
+     "cache_age_days": 2.619,
      "stale": false,
      "indicator": "DT.DOD.DECT.GN.ZS"
     },
     "spot": {
      "source": "ecb",
-     "fetched_at": "2026-10-16T14:17:15+00:00",
+     "fetched_at": "2026-10-16T14:34:59+00:00",
      "observations": 4770
     },
     "reer": {
      "source": "bis",
-     "fetched_at": "2026-10-16T14:17:15+00:00",
+     "fetched_at": "2026-10-16T14:34:59+00:00",
      "observations": 392
     },
     "policy_rate": {
      "source": "bis",
-     "fetched_at": "2026-10-16T14:17:15+00:00"
+     "fetched_at": "2026-10-16T14:34:59+00:00"
     }
    },
    "_gate_reer_z_score": 1.6555542767673659,
@@ -37453,25 +37453,25 @@
    "_provenance": {
     "macro": {
      "source": "worldbank",
-     "fetched_at": "2026-10-16T14:17:15+00:00",
+     "fetched_at": "2026-10-16T14:34:59+00:00",
      "cache_hit": true,
-     "cache_age_days": 2.606,
+     "cache_age_days": 2.619,
      "stale": false,
      "indicator": "DT.DOD.DECT.GN.ZS"
     },
     "spot": {
      "source": "ecb",
-     "fetched_at": "2026-10-16T14:17:15+00:00",
+     "fetched_at": "2026-10-16T14:34:59+00:00",
      "observations": 7115
     },
     "reer": {
      "source": "bis",
-     "fetched_at": "2026-10-16T14:17:15+00:00",
+     "fetched_at": "2026-10-16T14:34:59+00:00",
      "observations": 392
     },
     "policy_rate": {
      "source": "bis",
-     "fetched_at": "2026-10-16T14:17:15+00:00"
+     "fetched_at": "2026-10-16T14:34:59+00:00"
     }
    },
    "_gate_reer_z_score": 1.248408752577818,
@@ -39663,25 +39663,25 @@
    "_provenance": {
     "macro": {
      "source": "worldbank",
-     "fetched_at": "2026-10-16T14:17:15+00:00",
+     "fetched_at": "2026-10-16T14:34:59+00:00",
      "cache_hit": true,
-     "cache_age_days": 2.606,
+     "cache_age_days": 2.619,
      "stale": false,
      "indicator": "DT.DOD.DECT.GN.ZS"
     },
     "spot": {
      "source": "ecb",
-     "fetched_at": "2026-10-16T14:17:15+00:00",
+     "fetched_at": "2026-10-16T14:34:59+00:00",
      "observations": 7115
     },
     "reer": {
      "source": "bis",
-     "fetched_at": "2026-10-16T14:17:15+00:00",
+     "fetched_at": "2026-10-16T14:34:59+00:00",
      "observations": 392
     },
     "policy_rate": {
      "source": "bis",
-     "fetched_at": "2026-10-16T14:17:15+00:00"
+     "fetched_at": "2026-10-16T14:34:59+00:00"
     }
    },
    "_gate_reer_z_score": -0.7467825038341973,
@@ -41871,25 +41871,25 @@
    "_provenance": {
     "macro": {
      "source": "worldbank",
-     "fetched_at": "2026-10-16T14:17:15+00:00",
+     "fetched_at": "2026-10-16T14:34:59+00:00",
      "cache_hit": true,
-     "cache_age_days": 2.606,
+     "cache_age_days": 2.619,
      "stale": false,
      "indicator": "DT.DOD.DECT.GN.ZS"
     },
     "spot": {
      "source": "ecb",
-     "fetched_at": "2026-10-16T14:17:15+00:00",
+     "fetched_at": "2026-10-16T14:34:59+00:00",
      "observations": 7115
     },
     "reer": {
      "source": "bis",
-     "fetched_at": "2026-10-16T14:17:15+00:00",
+     "fetched_at": "2026-10-16T14:34:59+00:00",
      "observations": 392
     },
     "policy_rate": {
      "source": "bis",
-     "fetched_at": "2026-10-16T14:17:15+00:00"
+     "fetched_at": "2026-10-16T14:34:59+00:00"
     }
    },
    "_gate_reer_z_score": 0.6032816874447183,
@@ -44079,25 +44079,25 @@
    "_provenance": {
     "macro": {
      "source": "worldbank",
-     "fetched_at": "2026-10-16T14:17:15+00:00",
+     "fetched_at": "2026-10-16T14:34:59+00:00",
      "cache_hit": true,
-     "cache_age_days": 2.606,
+     "cache_age_days": 2.619,
      "stale": false,
      "indicator": "DT.DOD.DECT.GN.ZS"
     },
     "spot": {
      "source": "ecb",
-     "fetched_at": "2026-10-16T14:17:15+00:00",
+     "fetched_at": "2026-10-16T14:34:59+00:00",
      "observations": 7115
     },
     "reer": {
      "source": "bis",
-     "fetched_at": "2026-10-16T14:17:15+00:00",
+     "fetched_at": "2026-10-16T14:34:59+00:00",
      "observations": 392
     },
     "policy_rate": {
      "source": "bis",
-     "fetched_at": "2026-10-16T14:17:15+00:00"
+     "fetched_at": "2026-10-16T14:34:59+00:00"
     }
    },
    "_gate_reer_z_score": 0.7815852853676235,
@@ -46287,25 +46287,25 @@
    "_provenance": {
     "macro": {
      "source": "worldbank",
-     "fetched_at": "2026-10-16T14:17:15+00:00",
+     "fetched_at": "2026-10-16T14:34:59+00:00",
      "cache_hit": true,
-     "cache_age_days": 2.606,
+     "cache_age_days": 2.619,
      "stale": false,
      "indicator": "DT.DOD.DECT.GN.ZS"
     },
     "spot": {
      "source": "ecb",
-     "fetched_at": "2026-10-16T14:17:15+00:00",
+     "fetched_at": "2026-10-16T14:34:59+00:00",
      "observations": 7115
     },
     "reer": {
      "source": "bis",
-     "fetched_at": "2026-10-16T14:17:15+00:00",
+     "fetched_at": "2026-10-16T14:34:59+00:00",
      "observations": 392
     },
     "policy_rate": {
      "source": "bis",
-     "fetched_at": "2026-10-16T14:17:15+00:00"
+     "fetched_at": "2026-10-16T14:34:59+00:00"
     }
    },
    "_gate_reer_z_score": -0.20869253470192375,
@@ -48495,25 +48495,25 @@
    "_provenance": {
     "macro": {
      "source": "worldbank",
-     "fetched_at": "2026-10-16T14:17:15+00:00",
+     "fetched_at": "2026-10-16T14:34:59+00:00",
      "cache_hit": true,
-     "cache_age_days": 2.606,
+     "cache_age_days": 2.619,
      "stale": false,
      "indicator": "DT.DOD.DECT.GN.ZS"
     },
     "spot": {
      "source": "ecb",
-     "fetched_at": "2026-10-16T14:17:15+00:00",
+     "fetched_at": "2026-10-16T14:34:59+00:00",
      "observations": 7115
     },
     "reer": {
      "source": "bis",
-     "fetched_at": "2026-10-16T14:17:15+00:00",
+     "fetched_at": "2026-10-16T14:34:59+00:00",
      "observations": 392
     },
     "policy_rate": {
      "source": "bis",
-     "fetched_at": "2026-10-16T14:17:15+00:00"
+     "fetched_at": "2026-10-16T14:34:59+00:00"
     }
    },
    "_gate_reer_z_score": 0.6364743839341256,
@@ -50722,25 +50722,25 @@
    "_provenance": {
     "macro": {
      "source": "worldbank",
-     "fetched_at": "2026-10-16T14:17:15+00:00",
+     "fetched_at": "2026-10-16T14:34:59+00:00",
      "cache_hit": true,
-     "cache_age_days": 2.606,
+     "cache_age_days": 2.619,
      "stale": false,
      "indicator": "DT.DOD.DECT.GN.ZS"
     },
     "spot": {
      "source": "ecb",
-     "fetched_at": "2026-10-16T14:17:15+00:00",
+     "fetched_at": "2026-10-16T14:34:59+00:00",
      "observations": 7115
     },
     "reer": {
      "source": "bis",
-     "fetched_at": "2026-10-16T14:17:15+00:00",
+     "fetched_at": "2026-10-16T14:34:59+00:00",
      "observations": 392
     },
     "policy_rate": {
      "source": "bis",
-     "fetched_at": "2026-10-16T14:17:15+00:00"
+     "fetched_at": "2026-10-16T14:34:59+00:00"
     }
    },
    "_gate_reer_z_score": 0.06823477020468881,
@@ -52930,25 +52930,25 @@
    "_provenance": {
     "macro": {
      "source": "worldbank",
-     "fetched_at": "2026-10-16T14:17:15+00:00",
+     "fetched_at": "2026-10-16T14:34:59+00:00",
      "cache_hit": true,
-     "cache_age_days": 2.606,
+     "cache_age_days": 2.619,
      "stale": false,
      "indicator": "DT.DOD.DECT.GN.ZS"
     },
     "spot": {
      "source": "ecb",
-     "fetched_at": "2026-10-16T14:17:15+00:00",
+     "fetched_at": "2026-10-16T14:34:59+00:00",
      "observations": 6847
     },
     "reer": {
      "source": "bis",
-     "fetched_at": "2026-10-16T14:17:15+00:00",
+     "fetched_at": "2026-10-16T14:34:59+00:00",
      "observations": 392
     },
     "policy_rate": {
      "source": "bis",
-     "fetched_at": "2026-10-16T14:17:15+00:00"
+     "fetched_at": "2026-10-16T14:34:59+00:00"
     }
    },
    "_gate_reer_z_score": 2.498562255523096,
@@ -55138,25 +55138,25 @@
    "_provenance": {
     "macro": {
      "source": "worldbank",
-     "fetched_at": "2026-10-16T14:17:15+00:00",
+     "fetched_at": "2026-10-16T14:34:59+00:00",
      "cache_hit": true,
-     "cache_age_days": 2.606,
+     "cache_age_days": 2.619,
      "stale": false,
      "indicator": "DT.DOD.DECT.GN.ZS"
     },
     "spot": {
      "source": "ecb",
-     "fetched_at": "2026-10-16T14:17:15+00:00",
+     "fetched_at": "2026-10-16T14:34:59+00:00",
      "observations": 7115
     },
     "reer": {
      "source": "bis",
-     "fetched_at": "2026-10-16T14:17:15+00:00",
+     "fetched_at": "2026-10-16T14:34:59+00:00",
      "observations": 392
     },
     "policy_rate": {
      "source": "bis",
-     "fetched_at": "2026-10-16T14:17:15+00:00"
+     "fetched_at": "2026-10-16T14:34:59+00:00"
     }
    },
    "_gate_reer_z_score": 0.7565074540307856,
@@ -57346,25 +57346,25 @@
    "_provenance": {
     "macro": {
      "source": "worldbank",
-     "fetched_at": "2026-10-16T14:17:15+00:00",
+     "fetched_at": "2026-10-16T14:34:59+00:00",
      "cache_hit": true,
-     "cache_age_days": 2.606,
+     "cache_age_days": 2.619,
      "stale": false,
      "indicator": "DT.DOD.DECT.GN.ZS"
     },
     "spot": {
      "source": "ecb",
-     "fetched_at": "2026-10-16T14:17:15+00:00",
+     "fetched_at": "2026-10-16T14:34:59+00:00",
      "observations": 7115
     },
     "reer": {
      "source": "bis",
-     "fetched_at": "2026-10-16T14:17:15+00:00",
+     "fetched_at": "2026-10-16T14:34:59+00:00",
      "observations": 392
     },
     "policy_rate": {
      "source": "bis",
-     "fetched_at": "2026-10-16T14:17:15+00:00"
+     "fetched_at": "2026-10-16T14:34:59+00:00"
     }
    },
    "_gate_reer_z_score": 1.992235594408154,
@@ -59554,25 +59554,25 @@
    "_provenance": {
     "macro": {
      "source": "worldbank",
-     "fetched_at": "2026-10-16T14:17:15+00:00",
+     "fetched_at": "2026-10-16T14:34:59+00:00",
      "cache_hit": true,
-     "cache_age_days": 2.606,
+     "cache_age_days": 2.619,
      "stale": false,
      "indicator": "DT.DOD.DECT.GN.ZS"
     },
     "spot": {
      "source": "ecb",
-     "fetched_at": "2026-10-16T14:17:15+00:00",
+     "fetched_at": "2026-10-16T14:34:59+00:00",
      "observations": 7115
     },
     "reer": {
      "source": "bis",
-     "fetched_at": "2026-10-16T14:17:15+00:00",
+     "fetched_at": "2026-10-16T14:34:59+00:00",
      "observations": 392
     },
     "policy_rate": {
      "source": "bis",
-     "fetched_at": "2026-10-16T14:17:15+00:00"
+     "fetched_at": "2026-10-16T14:34:59+00:00"
     }
    },
    "_gate_reer_z_score": 1.4554426371366553,
@@ -61762,25 +61762,25 @@
    "_provenance": {
     "macro": {
      "source": "worldbank",
-     "fetched_at": "2026-10-16T14:17:15+00:00",
+     "fetched_at": "2026-10-16T14:34:59+00:00",
      "cache_hit": true,
-     "cache_age_days": 2.606,
+     "cache_age_days": 2.619,
      "stale": false,
      "indicator": "DT.DOD.DECT.GN.ZS"
     },
     "spot": {
      "source": "ecb",
-     "fetched_at": "2026-10-16T14:17:15+00:00",
+     "fetched_at": "2026-10-16T14:34:59+00:00",
      "observations": 7115
     },
     "reer": {
      "source": "bis",
-     "fetched_at": "2026-10-16T14:17:15+00:00",
+     "fetched_at": "2026-10-16T14:34:59+00:00",
      "observations": 392
     },
     "policy_rate": {
      "source": "bis",
-     "fetched_at": "2026-10-16T14:17:15+00:00"
+     "fetched_at": "2026-10-16T14:34:59+00:00"
     }
    },
    "_gate_reer_z_score": 1.3686851703707357,
@@ -63970,25 +63970,25 @@
    "_provenance": {
     "macro": {
      "source": "worldbank",
-     "fetched_at": "2026-10-16T14:17:15+00:00",
+     "fetched_at": "2026-10-16T14:34:59+00:00",
      "cache_hit": true,
-     "cache_age_days": 2.606,
+     "cache_age_days": 2.619,
      "stale": false,
      "indicator": "DT.DOD.DECT.GN.ZS"
     },
     "spot": {
      "source": "ecb",
-     "fetched_at": "2026-10-16T14:17:15+00:00",
+     "fetched_at": "2026-10-16T14:34:59+00:00",
      "observations": 7115
     },
     "reer": {
      "source": "bis",
-     "fetched_at": "2026-10-16T14:17:15+00:00",
+     "fetched_at": "2026-10-16T14:34:59+00:00",
      "observations": 392
     },
     "policy_rate": {
      "source": "bis",
-     "fetched_at": "2026-10-16T14:17:15+00:00"
+     "fetched_at": "2026-10-16T14:34:59+00:00"
     }
    },
    "_gate_reer_z_score": 1.8809769874665936,
@@ -66178,25 +66178,25 @@
    "_provenance": {
     "macro": {
      "source": "worldbank",
-     "fetched_at": "2026-10-16T14:17:15+00:00",
+     "fetched_at": "2026-10-16T14:34:59+00:00",
      "cache_hit": true,
-     "cache_age_days": 2.606,
+     "cache_age_days": 2.619,
      "stale": false,
      "indicator": "DT.DOD.DECT.GN.ZS"
     },
     "spot": {
      "source": "ecb",
-     "fetched_at": "2026-10-16T14:17:15+00:00",
+     "fetched_at": "2026-10-16T14:34:59+00:00",
      "observations": 7115
     },
     "reer": {
      "source": "bis",
-     "fetched_at": "2026-10-16T14:17:15+00:00",
+     "fetched_at": "2026-10-16T14:34:59+00:00",
      "observations": 392
     },
     "policy_rate": {
      "source": "bis",
-     "fetched_at": "2026-10-16T14:17:15+00:00"
+     "fetched_at": "2026-10-16T14:34:59+00:00"
     }
    },
    "_gate_reer_z_score": 2.4395516388802956,
