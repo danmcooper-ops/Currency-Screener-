@@ -51,8 +51,7 @@ REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, REPO_ROOT)
 
 TZ = ZoneInfo('America/New_York')
-DEFAULT_HOME = os.path.expanduser(
-    '~/Library/Application Support/CurrencyScreener/check')
+DEFAULT_HOME = os.path.expanduser('~/CurrencyScreener')
 FALLBACK_REMOTE = 'https://github.com/danmcooper-ops/Currency-Screener-'
 
 # The healthy page is ~650-700 KB. Pages falling back to serving the README

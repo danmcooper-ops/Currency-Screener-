@@ -12,8 +12,11 @@
 #   - a CA bundle. The python.org build has none of its own and fails HTTPS
 #     verification; certifi's is used when installed, else macOS's
 #     /etc/ssl/cert.pem.
-#   - CURRENCY_CHECK_HOME outside the repo and off iCloud, so the archived
-#     history survives a re-clone.
+#   - one folder, ~/CurrencyScreener, holding everything the check keeps:
+#     report.md, status.json, history/<date>/ snapshots and logs/. It is
+#     outside the repo (survives a re-clone), off iCloud (~/Documents and
+#     ~/Desktop may sync) and visible in Finder, unlike ~/Library. The first
+#     run after the move migrates the old ~/Library locations into it.
 #   - a lock, so the app task, a retry and a manual run never overlap.
 #
 # Usage:  scheduled-tasks/daily-check/mac_run.sh [check_site.py args]
@@ -21,9 +24,39 @@
 set -uo pipefail
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-export CURRENCY_CHECK_HOME="${CURRENCY_CHECK_HOME:-$HOME/Library/Application Support/CurrencyScreener/check}"
-LOGDIR="${LOGDIR:-$HOME/Library/Logs/CurrencyScreener}"
-mkdir -p "$CURRENCY_CHECK_HOME" "$LOGDIR"
+export CURRENCY_CHECK_HOME="${CURRENCY_CHECK_HOME:-$HOME/CurrencyScreener}"
+LOGDIR="${LOGDIR:-$CURRENCY_CHECK_HOME/logs}"
+mkdir -p "$CURRENCY_CHECK_HOME/history" "$LOGDIR"
+
+# One-time migration from the pre-consolidation locations. Moves only what the
+# new folder lacks, so nothing is ever overwritten, and removes the old
+# directories only once they are empty.
+OLD_HOME="$HOME/Library/Application Support/CurrencyScreener/check"
+OLD_LOGDIR="$HOME/Library/Logs/CurrencyScreener"
+if [ -f "$OLD_HOME/.check.lock" ] && kill -0 "$(cat "$OLD_HOME/.check.lock" 2>/dev/null)" 2>/dev/null; then
+  echo "mac_run: ALREADY RUNNING pid $(cat "$OLD_HOME/.check.lock") (old location)" >&2
+  exit 1
+fi
+migrate() {  # migrate SRC_DIR DEST_DIR: move each entry DEST does not have
+  local src="$1" dest="$2" e
+  [ -d "$src" ] || return 0
+  for e in "$src"/* "$src"/.[!.]*; do
+    [ -e "$e" ] || continue
+    case "$(basename "$e")" in .check.lock) rm -f "$e"; continue ;; esac
+    [ -e "$dest/$(basename "$e")" ] || mv "$e" "$dest/"
+  done
+}
+if [ -d "$OLD_HOME" ] || [ -d "$OLD_LOGDIR" ]; then
+  migrate "$OLD_HOME/history" "$CURRENCY_CHECK_HOME/history"
+  rmdir "$OLD_HOME/history" 2>/dev/null
+  migrate "$OLD_HOME" "$CURRENCY_CHECK_HOME"
+  migrate "$OLD_LOGDIR" "$LOGDIR"
+  rmdir "$OLD_HOME" "$(dirname "$OLD_HOME")" "$OLD_LOGDIR" 2>/dev/null
+  echo "mac_run: migrated old ~/Library check files into $CURRENCY_CHECK_HOME"
+  for d in "$OLD_HOME" "$OLD_LOGDIR"; do
+    [ -d "$d" ] && echo "mac_run: left in $d (same name already in the new folder):" $(ls -A "$d")
+  done
+fi
 
 pick_python() {
   local c
