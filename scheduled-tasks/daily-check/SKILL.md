@@ -22,10 +22,14 @@ launch it, wait, and write the summary from its report.
 
 ## Where things are
 - Checkout: `~/Projects/Currency-Screener-` (adjust if it lives elsewhere).
-- Work directory (`W`): `~/Library/Application Support/CurrencyScreener/check`,
-  holding `report.md`, `status.json`, `.check.lock` (the PID while a run is
-  live) and `history/<run_date>/{results,manifest}.json`, one per day.
-- Log: `~/Library/Logs/CurrencyScreener/check_<date>.log`
+- Work directory (`W`): `~/CurrencyScreener` — the single folder for
+  everything the check keeps: `report.md`, `status.json`, `.check.lock` (the
+  PID while a run is live), `history/<run_date>/{results,manifest}.json` (one
+  snapshot per day) and `logs/`.
+- Log: `~/CurrencyScreener/logs/check_<date>.log`
+- Older runs used `~/Library/Application Support/CurrencyScreener/check` and
+  `~/Library/Logs/CurrencyScreener`; `mac_run.sh` moves anything left there
+  into `~/CurrencyScreener` on its next run.
 
 ## Step 1 — Run the check
 Run this as a Bash call **in the background** (run_in_background), and wait

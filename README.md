@@ -229,9 +229,10 @@ does, it says why: the ECB published nothing today (a correct skip, the same
 question `should_build.py` asks), today's run failed, or it is still late.
 It derives the site URL from the git remote — the cloud routine it replaced
 hard-coded the pre-rename `Currency-Arbitrage-` URL and reported a healthy
-site as a 404. Each day's `results.json` is archived under
-`~/Library/Application Support/CurrencyScreener/check/history/`, so the
-day-over-day rating diff always has yesterday on disk.
+site as a 404. Everything the check keeps lives in one Finder-visible folder,
+`~/CurrencyScreener`: each day's snapshot under `history/<date>/`, the latest
+`report.md` and `status.json`, and `logs/`. Yesterday is therefore always on
+disk for the day-over-day rating diff.
 
 Mac setup: clone to `~/Projects/Currency-Screener-` (off iCloud) with a
 Python ≥ 3.11 installed; there are no dependencies to install. Dry run with
