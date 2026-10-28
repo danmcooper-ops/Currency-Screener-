@@ -14,19 +14,19 @@ name: Build and publish currency screener
 
 on:
   schedule:
-    # Target: 16:15 America/New_York, weekdays.
+    # Target: 17:00 America/New_York, weekdays, with the other models.
     #
-    # Cron here is fixed-UTC, and 16:15 New York is 20:15 UTC under EDT but
-    # 21:15 UTC under EST. Both are registered; scripts/should_build.py
-    # discards any run starting before 16:00 local, and any run after one
+    # Cron here is fixed-UTC, and 17:00 New York is 21:00 UTC under EDT but
+    # 22:00 UTC under EST. Both are registered; scripts/should_build.py
+    # discards any run starting before 17:00 local, and any run after one
     # has already published today, so neither cron needs editing at the DST
     # boundaries. GitHub often starts these hours late — the gate tolerates
     # that rather than dropping late runs.
     #
-    # Day-of-week is evaluated in UTC, but at 20-21 UTC the New York date is
+    # Day-of-week is evaluated in UTC, but at 21-22 UTC the New York date is
     # the same calendar day, so 1-5 really does mean Mon-Fri locally.
-    - cron: '15 20 * * 1-5'   # 16:15 EDT
-    - cron: '15 21 * * 1-5'   # 16:15 EST
+    - cron: '0 21 * * 1-5'    # 17:00 EDT
+    - cron: '0 22 * * 1-5'    # 17:00 EST
   workflow_dispatch:
   push:
     # The github-pages environment only accepts deployments from the
@@ -91,7 +91,7 @@ jobs:
             # treats as "not built today".
             last_built="$(git fetch --quiet --depth=1 origin pages-live 2>/dev/null \
               && git log -1 --format=%ct FETCH_HEAD || true)"
-            python scripts/should_build.py --tz America/New_York --hour 16 \
+            python scripts/should_build.py --tz America/New_York --hour 17 \
               --last-built "$last_built"
           else
             echo "proceed=true" >> "$GITHUB_OUTPUT"

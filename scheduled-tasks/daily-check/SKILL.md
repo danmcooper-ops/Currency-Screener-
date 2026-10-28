@@ -9,7 +9,7 @@ Claude desktop app's scheduled task `the-daily-currency-check` (weekdays
 Currency Screener".
 
 GitHub Actions (`.github/workflows/build.yml`) builds and deploys the site;
-GitHub often starts that run 2–3 hours after its 16:15 target. Your job is
+GitHub often starts that run 2–3 hours after its 17:00 target. Your job is
 the part Actions cannot do: confirm the build landed and report what changed
 in the model. All of the checking is done by `scripts/check_site.py`; you
 launch it, wait, and write the summary from its report.
