@@ -167,7 +167,7 @@ pillar is backwards. Pinned in `tests/test_live_endpoints.py`.
 
 ## Publishing
 
-`build.yml` runs **weekdays at 16:15 America/New_York** (and on pushes that
+`build.yml` runs **weekdays at 17:00 America/New_York** (and on pushes that
 touch the model): it runs the tests, rebuilds the report, and deploys it
 straight to GitHub Pages via `actions/deploy-pages`. The artifacts are
 gitignored — the report is regenerated in full every run, so versioning it on
@@ -176,13 +176,13 @@ gitignored — the report is regenerated in full every run, so versioning it on
 Two scheduling problems are handled by `scripts/should_build.py` rather than by
 cron, which can express neither:
 
-**Daylight saving.** 16:15 New York is 20:15 UTC under EDT and 21:15 UTC under
+**Daylight saving.** 17:00 New York is 21:00 UTC under EDT and 22:00 UTC under
 EST, and GitHub cron is fixed-UTC. Both crons are registered and the gate
-discards any run that starts before 16:00 local, or after the site has already
+discards any run that starts before 17:00 local, or after the site has already
 been published that day (read from the `pages-live` commit time), so exactly
 one builds in either half of the year with no seasonal editing. The hour is a
 floor rather than a window because GitHub often starts scheduled runs hours
-late; requiring the 16:00 hour exactly silently stopped every build from
+late; requiring the target hour exactly silently stopped every build from
 2026-08-26.
 
 **Bank holidays.** Instead of a hard-coded calendar — which would need annual

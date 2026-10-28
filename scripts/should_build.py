@@ -1,6 +1,6 @@
 """Decide whether a scheduled build should proceed.
 
-    python scripts/should_build.py --tz America/New_York --hour 16
+    python scripts/should_build.py --tz America/New_York --hour 17
 
 Writes `proceed=true|false` and a `reason=` line in GitHub Actions output
 format, so the workflow can gate its steps with an `if:` rather than failing
@@ -8,14 +8,14 @@ the job — a deliberate skip is not an error and should not show a red X.
 
 Three independent checks.
 
-**Local hour.** GitHub cron is fixed-UTC, but 16:15 America/New_York is
-20:15 UTC under EDT and 21:15 UTC under EST. The workflow therefore registers
-both crons and this check discards any run that starts before 16:00 local —
-under EST that is the 20:15 UTC cron, which lands at 15:15.
+**Local hour.** GitHub cron is fixed-UTC, but 17:00 America/New_York is
+21:00 UTC under EDT and 22:00 UTC under EST. The workflow therefore registers
+both crons and this check discards any run that starts before 17:00 local —
+under EST that is the 21:00 UTC cron, which lands at 16:00.
 
 The hour is a floor, not a window. GitHub routinely starts scheduled runs
 late, and on this repository the delay grew from ~30 minutes to two or more
-hours. An earlier version required the run to land *inside* the 16:00 hour,
+hours. An earlier version required the run to land *inside* the target hour,
 so from 2026-08-26 every run was discarded as late and the site silently
 stopped updating while every run showed green.
 
